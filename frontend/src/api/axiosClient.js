@@ -1,23 +1,40 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-    baseURL: 'http://localhost:8080/api/v1', // Nhớ kiểm tra Backend chạy port 8080 chưa
+    baseURL: 'http://localhost:8080/api',
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Xử lý dữ liệu trả về cho gọn
-axiosClient.interceptors.response.use(
-    (response) => {
-        if (response && response.data) {
-            return response.data;
+// Add a request interceptor
+axiosClient.interceptors.request.use(
+    function (config) {
+        // Lấy token từ localStorage
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
+        return config;
+    },
+    function (error) {
+        return Promise.reject(error);
+    }
+);
+
+// Add a response interceptor
+axiosClient.interceptors.response.use(
+    function (response) {
         return response;
     },
-    (error) => {
-        console.error("Lỗi gọi API:", error);
-        throw error;
+    function (error) {
+        // Nếu token hết hạn (401), redirect về login
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
     }
 );
 

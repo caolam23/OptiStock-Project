@@ -1,0 +1,22 @@
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+/**
+ * Component để bảo vệ các route yêu cầu authentication
+ */
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', paddingTop: '50px' }}>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;
