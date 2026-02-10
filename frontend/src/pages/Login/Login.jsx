@@ -1,36 +1,42 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox, Spin, Alert as AntAlert } from 'antd';
-// Sử dụng các icon mới chuyên nghiệp hơn cho mảng kho vận
+// Sử dụng các icon
 import { 
-  DropboxOutlined, // Icon hộp hàng chuyên nghiệp hơn
-  CodeSandboxOutlined, // Icon logo khối lập phương hiện đại
+  DropboxOutlined, 
+  CodeSandboxOutlined, 
   EyeInvisibleOutlined, 
   EyeTwoTone 
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+
+// 1. IMPORT QUAN TRỌNG CHO GOOGLE
+import { useGoogleLogin } from '@react-oauth/google';
+
+// Import AuthContext và API
 import { useAuth } from '../../context/AuthContext';
-// Import CSS Module
+import authApi from '../../api/authApi'; // Import file api vừa sửa
 import styles from './Login.module.css';
 
 const Login = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuth(); // Hàm login thường từ context
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // --- GIỮ NGUYÊN LOGIC CŨ ---
+  // --- LOGIC 1: ĐĂNG NHẬP THƯỜNG (Giữ nguyên) ---
   const onFinish = async (values) => {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
 
     try {
-      const response = await login(values.email, values.password);
-      setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
+      // Gọi hàm login từ AuthContext (hoặc authApi.login trực tiếp nếu chưa có context)
+      await login(values.email, values.password);
       
+      setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
       setTimeout(() => {
         navigate('/dashboard');
       }, 1500);
@@ -49,19 +55,63 @@ const Login = () => {
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
-  // --- HẾT PHẦN LOGIC CŨ ---
+
+  // --- LOGIC 2: ĐĂNG NHẬP GOOGLE (MỚI THÊM) ---
+  
+  // Hàm xử lý khi Google trả về Access Token thành công
+  const handleGoogleSuccess = async (tokenResponse) => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log("Google Access Token:", tokenResponse.access_token);
+      
+      // Gọi API backend của mình để xác thực token
+      const res = await authApi.loginGoogle(tokenResponse.access_token);
+      
+      // Lưu ý: Tùy vào axiosClient cấu hình trả về data hay full response
+      // Ở đây giả sử res chứa data trả về từ server
+      const data = res.data || res; 
+
+      if (data && data.token) {
+          // Lưu token vào localStorage
+          localStorage.setItem('accessToken', data.token);
+          localStorage.setItem('user', JSON.stringify({
+              email: data.email,
+              fullName: data.fullName,
+              roles: data.roles
+          }));
+
+          setSuccessMessage('Đăng nhập Google thành công!');
+          setTimeout(() => {
+              navigate('/dashboard');
+              // Reload trang nếu cần update Context: window.location.reload();
+          }, 1500);
+      }
+    } catch (err) {
+      console.error('Google Backend Error:', err);
+      setError(err.response?.data?.message || 'Lỗi xác thực Google với server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Khởi tạo hook
+  const loginGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => setError('Đăng nhập Google thất bại (Popup closed).'),
+  });
+
+  // ---------------------------------------------
 
   return (
     <div className={styles.container}>
       {/* --- PHẦN BÊN TRÁI: BRANDING --- */}
       <div className={styles.brandSection}>
-        {/* Abstract Shapes */}
         <div className={`${styles.circleBg} ${styles.c1}`}></div>
         <div className={`${styles.circleBg} ${styles.c2}`}></div>
         
         <div className={styles.brandContent}>
           <div className={styles.imagePlaceholder}>
-            {/* Icon minh họa kho hàng mới - DropboxOutlined nhìn rất giống kiện hàng */}
             <DropboxOutlined style={{ fontSize: '120px', color: '#F59E0B' }} />
           </div>
 
@@ -77,7 +127,6 @@ const Login = () => {
           {/* Logo Header */}
           <div className={styles.logoHeader}>
             <div className={styles.logoIcon}>
-              {/* Icon logo mới hiện đại hơn */}
               <CodeSandboxOutlined />
             </div>
             <div className={styles.logoText}>OptiStock</div>
@@ -184,16 +233,22 @@ const Login = () => {
             <span>hoặc</span>
           </div>
 
-          <button className={styles.btnGoogle} type="button">
+          {/* NÚT GOOGLE ĐÃ GẮN SỰ KIỆN */}
+          <button 
+            className={styles.btnGoogle} 
+            type="button"
+            onClick={() => loginGoogle()} 
+            disabled={loading}
+          >
             <img 
               src="https://www.svgrepo.com/show/475656/google-color.svg" 
               alt="Google Logo" 
               style={{ width: '20px', height: '20px' }} 
             />
-            Đăng nhập bằng Google
+            {loading ? 'Đang kết nối...' : 'Đăng nhập bằng Google'}
           </button>
 
-          {/* Footer - Đã sửa link sang Register */}
+          {/* Footer */}
           <div className={styles.footer}>
             Chưa có tài khoản? 
             <Link to="/register" className={styles.footerLink}>Đăng ký tài khoản</Link>

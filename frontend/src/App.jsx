@@ -5,7 +5,7 @@ import './App.css';
 
 function App() {
   // Thay bằng Client ID thật của bạn
-  const clientId = "YOUR_GOOGLE_CLIENT_ID_HERE"; 
+  const clientId = "574851867505-lg2cqa3t7bjpkb5augkq95t3bsvn88ss.apps.googleusercontent.com"; 
 
   return (
     <GoogleOAuthProvider clientId={clientId}>

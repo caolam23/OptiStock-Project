@@ -1,92 +1,91 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Alert, Spin, Steps, Divider } from 'antd';
-import { MailOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons'; // ✅ Đã sửa SafeOutlined thành SafetyOutlined
+import { Form, Input, Button, Typography, Alert as AntAlert, Spin, Divider } from 'antd';
+import { 
+  MailOutlined, 
+  LockOutlined, 
+  SafetyOutlined,
+  UnlockFilled, // Icon ổ khóa mở/đóng (thay cho icon shield)
+  ArrowLeftOutlined,
+  EyeTwoTone,
+  EyeInvisibleOutlined
+} from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
-// import { useAuth } from '../../context/AuthContext'; // Bỏ comment nếu bạn đã setup AuthContext
-import './ForgotPassword.css';
+import authApi from '../../api/authApi';
+// Import CSS Module mới
+import styles from './ForgotPassword.module.css';
 
 const { Title, Text } = Typography;
 
 const ForgotPassword = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  
-  // Nếu bạn chưa có AuthContext, hãy dùng mock function tạm thời ở đây để không bị lỗi
-  // const { sendOtp, resetPassword } = useAuth(); 
-  
-  // --- MOCK API (Xóa dòng này khi có AuthContext thực) ---
-  const sendOtp = async (email) => { return new Promise(resolve => setTimeout(resolve, 1000)); };
-  const resetPassword = async (email, otp, pass, confirm) => { return new Promise(resolve => setTimeout(resolve, 1000)); };
-  // -------------------------------------------------------
 
   const [step, setStep] = useState(0); // 0: Email, 1: OTP & New Password
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(''); // Lưu email để dùng cho bước 2
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Step 1: Gửi OTP
+  // --- LOGIC GIỮ NGUYÊN ---
   const onFinishStep1 = async (values) => {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
 
     try {
-      await sendOtp(values.email);
+      const response = await authApi.forgotPassword(values.email);
       setEmail(values.email);
-      setSuccessMessage(`OTP đã được gửi tới email ${values.email}. Vui lòng kiểm tra!`);
+      setSuccessMessage(response.message || `OTP đã được gửi tới email ${values.email}. Vui lòng kiểm tra!`);
       
-      // Chuyển sang step 2
       setTimeout(() => {
         setStep(1);
         setSuccessMessage(null);
         form.resetFields();
       }, 2000);
+
     } catch (err) {
       console.error('Send OTP error:', err);
       const errorMsg = 
         err.response?.data?.message || 
         err.message || 
-        'Không thể gửi OTP. Vui lòng thử lại!';
+        'Không thể gửi OTP. Vui lòng kiểm tra lại email!';
       setError(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Reset mật khẩu
   const onFinishStep2 = async (values) => {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
 
     try {
-      // Kiểm tra mật khẩu trùng khớp
       if (values.newPassword !== values.confirmPassword) {
         setError('Mật khẩu xác nhận không trùng khớp!');
         setLoading(false);
         return;
       }
 
-      await resetPassword(
-        email,
-        values.otp,
-        values.newPassword,
-        values.confirmPassword
-      );
+      await authApi.resetPassword({
+        email: email,
+        otp: values.otp,
+        newPassword: values.newPassword,
+        confirmPassword: values.confirmPassword
+      });
 
       setSuccessMessage('Mật khẩu đã được thay đổi thành công! Đang chuyển hướng...');
 
-      // Chuyển sang Login sau 1.5 giây
       setTimeout(() => {
         navigate('/login');
       }, 1500);
+
     } catch (err) {
       console.error('Reset password error:', err);
       const errorMsg = 
         err.response?.data?.message || 
         err.message || 
-        'Reset mật khẩu thất bại. Vui lòng thử lại!';
+        'Reset mật khẩu thất bại. Mã OTP có thể đã hết hạn!';
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -96,213 +95,216 @@ const ForgotPassword = () => {
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
+  // --- HẾT PHẦN LOGIC ---
 
   return (
-    <div className="forgot-password-container">
-      <div className="forgot-password-wrapper">
-        <Card 
-          className="forgot-password-card"
-          style={{ 
-            width: '100%', 
-            maxWidth: '500px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
-          }}
-        >
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <Title level={2} style={{ marginBottom: '10px', color: '#1890ff' }}>
-              🔑 Reset Mật Khẩu
-            </Title>
-            <Text type="secondary">Khôi phục tài khoản của bạn</Text>
+    <div className={styles.container}>
+      {/* --- CỘT TRÁI: BRANDING --- */}
+      <div className={styles.brandSection}>
+        <div className={`${styles.circleBg} ${styles.c1}`}></div>
+        <div className={`${styles.circleBg} ${styles.c2}`}></div>
+        
+        <div className={styles.brandContent}>
+          <div className={styles.imagePlaceholder}>
+            {/* Icon ổ khóa vàng cam */}
+            <UnlockFilled style={{ fontSize: '90px', color: '#F59E0B' }} />
+          </div>
+          <h2>Bảo mật tuyệt đối</h2>
+          <p>Hệ thống bảo vệ dữ liệu kho hàng của bạn với các tiêu chuẩn an ninh cao nhất.</p>
+        </div>
+      </div>
+
+      {/* --- CỘT PHẢI: FORM --- */}
+      <div className={styles.loginSection}>
+        <div className={styles.loginWrapper}>
+
+          {/* Custom Stepper */}
+          <div className={styles.stepper}>
+            <div className={`${styles.stepItem} ${step >= 0 ? styles.stepItemActive : ''}`}>
+              <div className={styles.stepCircle}>1</div>
+              <span className={styles.stepLabel}>Email</span>
+            </div>
+            
+            <div className={styles.progressLine}></div>
+            
+            <div className={`${styles.stepItem} ${step >= 1 ? styles.stepItemActive : ''}`}>
+              <div className={styles.stepCircle}>2</div>
+              <span className={styles.stepLabel}>Xác nhận</span>
+            </div>
           </div>
 
-          {/* Steps Progress */}
-          <Steps
-            current={step}
-            items={[
-              { title: 'Email' },
-              { title: 'Xác nhận OTP' },
-            ]}
-            style={{ marginBottom: '30px' }}
-          />
-
+          {/* Alerts */}
           {error && (
-            <Alert
-              message="Lỗi"
-              description={error}
+            <AntAlert
+              message={error}
               type="error"
               showIcon
-              style={{ marginBottom: '20px' }}
+              style={{ marginBottom: '20px', borderRadius: '8px' }}
               closable
               onClose={() => setError(null)}
             />
           )}
 
           {successMessage && (
-            <Alert
-              message="Thành công"
-              description={successMessage}
+            <AntAlert
+              message={successMessage}
               type="success"
               showIcon
-              style={{ marginBottom: '20px' }}
+              style={{ marginBottom: '20px', borderRadius: '8px' }}
             />
           )}
 
           <Spin spinning={loading} tip="Đang xử lý...">
-            {/* Step 1: Email */}
+            
+            {/* STEP 1: NHẬP EMAIL */}
             {step === 0 && (
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={onFinishStep1}
-                onFinishFailed={onFinishFailed}
-                autoComplete="off"
-              >
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập email!' },
-                    { type: 'email', message: 'Email không hợp lệ!' },
-                  ]}
-                >
-                  <Input
-                    prefix={<MailOutlined />}
-                    placeholder="Nhập email của bạn"
-                    size="large"
-                    disabled={loading}
-                  />
-                </Form.Item>
-
-                <Form.Item style={{ marginBottom: '10px' }}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    size="large"
-                    loading={loading}
-                    disabled={loading}
-                  >
-                    Gửi OTP
-                  </Button>
-                </Form.Item>
-              </Form>
-            )}
-
-            {/* Step 2: OTP & New Password */}
-            {step === 1 && (
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={onFinishStep2}
-                onFinishFailed={onFinishFailed}
-                autoComplete="off"
-              >
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <Text type="secondary">
-                    Nhập mã OTP được gửi tới email của bạn
-                  </Text>
+              <div className={styles.fadeIn}>
+                <div className={styles.headerText}>
+                  <h1>🔑 Reset Mật Khẩu</h1>
+                  <p>Nhập email liên kết với tài khoản của bạn để nhận mã OTP.</p>
                 </div>
 
-                {/* OTP */}
-                <Form.Item
-                  label="Mã OTP (6 chữ số)"
-                  name="otp"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập OTP!' },
-                    {
-                      pattern: /^[0-9]{6}$/,
-                      message: 'OTP phải là 6 chữ số!',
-                    },
-                  ]}
+                <Form
+                  form={form}
+                  layout="vertical"
+                  onFinish={onFinishStep1}
+                  onFinishFailed={onFinishFailed}
+                  autoComplete="off"
+                  requiredMark={false}
                 >
-                  {/* ✅ Sửa icon SafeOutlined -> SafetyOutlined */}
-                  <Input
-                    prefix={<SafetyOutlined />} 
-                    placeholder="Ví dụ: 123456"
-                    size="large"
-                    disabled={loading}
-                    maxLength={6}
-                  />
-                </Form.Item>
-
-                <Divider />
-
-                {/* New Password */}
-                <Form.Item
-                  label="Mật khẩu Mới"
-                  name="newPassword"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
-                    { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
-                  ]}
-                >
-                  <Input.Password
-                    prefix={<LockOutlined />}
-                    placeholder="Nhập mật khẩu mới"
-                    size="large"
-                    disabled={loading}
-                  />
-                </Form.Item>
-
-                {/* Confirm Password */}
-                <Form.Item
-                  label="Xác nhận Mật khẩu"
-                  name="confirmPassword"
-                  rules={[
-                    { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
-                  ]}
-                >
-                  <Input.Password
-                    prefix={<LockOutlined />}
-                    placeholder="Nhập lại mật khẩu mới"
-                    size="large"
-                    disabled={loading}
-                  />
-                </Form.Item>
-
-                {/* Submit Button */}
-                <Form.Item style={{ marginBottom: '10px' }}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    block
-                    size="large"
-                    loading={loading}
-                    disabled={loading}
+                  <Form.Item
+                    label={<span className={styles.formLabel}>Email công việc</span>}
+                    name="email"
+                    rules={[
+                      { required: true, message: 'Vui lòng nhập email!' },
+                      { type: 'email', message: 'Email không hợp lệ!' },
+                    ]}
                   >
-                    Reset Mật Khẩu
-                  </Button>
-                </Form.Item>
+                    <Input
+                      placeholder="name@company.com"
+                      className={styles.inputField}
+                      disabled={loading}
+                      suffix={<MailOutlined style={{color: '#9CA3AF'}} />}
+                    />
+                  </Form.Item>
 
-                {/* Back Button */}
-                <Form.Item>
-                  <Button
-                    block
-                    size="large"
+                  <Form.Item style={{ marginBottom: '10px' }}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      block
+                      loading={loading}
+                      disabled={loading}
+                      className={styles.btnPrimary}
+                    >
+                      Gửi mã OTP
+                    </Button>
+                  </Form.Item>
+
+                  <Link to="/login" className={styles.backLink}>
+                    <ArrowLeftOutlined /> Quay lại trang đăng nhập
+                  </Link>
+                </Form>
+              </div>
+            )}
+
+            {/* STEP 2: NHẬP OTP & ĐỔI PASS */}
+            {step === 1 && (
+              <div className={styles.fadeIn}>
+                <div className={styles.headerText}>
+                  <h1>Khôi phục tài khoản</h1>
+                  <p>Nhập mã OTP được gửi tới email <span className={styles.highlightEmail}>{email}</span></p>
+                </div>
+
+                <Form
+                  form={form}
+                  layout="vertical"
+                  onFinish={onFinishStep2}
+                  onFinishFailed={onFinishFailed}
+                  autoComplete="off"
+                  requiredMark={false}
+                >
+                  {/* OTP */}
+                  <Form.Item
+                    label={<span className={styles.formLabel}>Mã OTP (6 chữ số)</span>}
+                    name="otp"
+                    rules={[
+                      { required: true, message: 'Vui lòng nhập OTP!' },
+                      { pattern: /^[0-9]{6}$/, message: 'OTP phải là 6 chữ số!' },
+                    ]}
+                  >
+                    <Input
+                      placeholder="------"
+                      maxLength={6}
+                      className={`${styles.inputField} ${styles.otpInput}`}
+                      disabled={loading}
+                    />
+                  </Form.Item>
+
+                  <Divider />
+
+                  {/* New Password */}
+                  <Form.Item
+                    label={<span className={styles.formLabel}>Mật khẩu mới</span>}
+                    name="newPassword"
+                    rules={[
+                      { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+                      { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+                    ]}
+                  >
+                    <Input.Password
+                      placeholder="••••••••"
+                      className={styles.inputField}
+                      disabled={loading}
+                      iconRender={(visible) => (visible ? <EyeTwoTone twoToneColor="#F59E0B"/> : <EyeInvisibleOutlined />)}
+                    />
+                  </Form.Item>
+
+                  {/* Confirm Password */}
+                  <Form.Item
+                    label={<span className={styles.formLabel}>Xác nhận mật khẩu</span>}
+                    name="confirmPassword"
+                    rules={[
+                      { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                    ]}
+                  >
+                    <Input.Password
+                      placeholder="••••••••"
+                      className={styles.inputField}
+                      disabled={loading}
+                      iconRender={(visible) => (visible ? <EyeTwoTone twoToneColor="#F59E0B"/> : <EyeInvisibleOutlined />)}
+                    />
+                  </Form.Item>
+
+                  <Form.Item style={{ marginBottom: '10px' }}>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      block
+                      loading={loading}
+                      disabled={loading}
+                      className={styles.btnPrimary}
+                    >
+                      Xác nhận đổi mật khẩu
+                    </Button>
+                  </Form.Item>
+
+                  <div 
+                    className={styles.backLink} 
                     onClick={() => {
                       setStep(0);
                       form.resetFields();
                       setError(null);
                     }}
-                    disabled={loading}
                   >
-                    Quay Lại
-                  </Button>
-                </Form.Item>
-              </Form>
+                    <ArrowLeftOutlined /> Nhập lại Email
+                  </div>
+                </Form>
+              </div>
             )}
+
           </Spin>
-
-          {/* Links */}
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <Link to="/login" style={{ color: '#1890ff' }}>
-              ← Quay lại trang đăng nhập
-            </Link>
-          </div>
-        </Card>
-
-        {/* Background Decoration */}
-        <div className="forgot-password-decoration"></div>
+        </div>
       </div>
     </div>
   );

@@ -22,10 +22,12 @@ const authApi = {
 
   /**
    * 3. Đăng nhập Google (SSO)
-   * @param {String} idToken - Token nhận được từ Google
+   * @param {String} accessToken - Token nhận được từ Google (qua hook useGoogleLogin)
+   * Backend sẽ dùng token này để gọi Google API lấy thông tin user.
    */
-  loginGoogle: (idToken) => {
-    return axiosClient.post(`${AUTH_URL}/google-login`, { token: idToken });
+  loginGoogle: (accessToken) => {
+    // Backend đang chờ body là: { "token": "..." }
+    return axiosClient.post(`${AUTH_URL}/google-login`, { token: accessToken });
   },
 
   /**
@@ -38,11 +40,10 @@ const authApi = {
 
   /**
    * 5. Quên mật khẩu - Bước 2: Xác thực OTP và Đổi mật khẩu
-   * @param {Object} data - { email, otpCode, newPassword }
-   * Lưu ý: Tên hàm này khớp với logic Backend (verify-otp)
+   * @param {Object} data - { email, otp, newPassword, confirmPassword }
    */
-  verifyOtpAndResetPassword: (data) => {
-    return axiosClient.post(`${AUTH_URL}/verify-otp`, data);
+  resetPassword: (data) => {
+    return axiosClient.post(`${AUTH_URL}/reset-password`, data);
   },
 
   /**
@@ -61,8 +62,6 @@ const authApi = {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    // Nếu muốn gọi API logout phía server thì uncomment dòng dưới
-    // return axiosClient.post(`${AUTH_URL}/logout`);
   },
 };
 

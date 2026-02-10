@@ -9,13 +9,14 @@ import com.optistock.backend.repository.UserRepository;
 import com.optistock.backend.service.AuthService;
 import com.optistock.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate; // Thư viện để gọi sang Google
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -63,7 +64,7 @@ public class AuthController {
         }
     }
 
-    // --- 3. QUÊ MẬT KHẨU - STEP 1: GỬI OTP ---
+    // --- 3. QUÊN MẬT KHẨU - STEP 1: GỬI OTP ---
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
         try {
@@ -80,7 +81,7 @@ public class AuthController {
         }
     }
 
-    // --- 4. RESET MẬT KHẨU - STEP 2: XÁC NHẬN OTP & ĐỀ MẬT KHẨU MỚI ---
+    // --- 4. RESET MẬT KHẨU - STEP 2: XÁC NHẬN OTP & ĐỔI MẬT KHẨU MỚI ---
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
         try {
@@ -95,55 +96,89 @@ public class AuthController {
         }
     }
 
-    // --- 5. GOOGLE LOGIN (SSO) ---
+    // --- 5. GOOGLE LOGIN (SSO) - ĐÃ CẬP NHẬT LOGIC THẬT ---
     @PostMapping("/google-login")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
-        String idTokenString = payload.get("token");
+        // Token này là Access Token được gửi từ Frontend (ReactJS)
+        String accessToken = payload.get("token");
 
-        if (idTokenString == null || idTokenString.isEmpty()) {
+        if (accessToken == null || accessToken.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Google Token is missing"));
         }
 
         try {
-            // Giả lập giải mã Google token (thực tế phải dùng Google Verifier)
-            String emailFromGoogle = "demo.user@gmail.com";
-            String nameFromGoogle = "Google User";
-            String googleId = "123456789";
+            // 1. Gọi Google API để lấy thông tin người dùng từ Access Token
+            String googleUserInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-            User user = userRepository.findByEmail(emailFromGoogle).orElseGet(() -> {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken); // Gắn token vào header Authorization: Bearer <token>
+            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+
+            // Gửi request GET lên Google
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    googleUserInfoUrl, HttpMethod.GET, entity, Map.class);
+
+            Map<String, Object> userInfo = response.getBody();
+
+            if (userInfo == null || userInfo.get("email") == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("success", false, "message", "Invalid Google Token"));
+            }
+
+            // 2. Lấy thông tin thật từ phản hồi của Google
+            String email = (String) userInfo.get("email");
+            String name = (String) userInfo.get("name");
+            String googleId = (String) userInfo.get("sub"); // Google ID duy nhất
+            // String picture = (String) userInfo.get("picture"); // Có thể lấy avatar nếu cần
+
+            // 3. Tìm hoặc tạo User trong Database
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                // Nếu chưa có user thì tạo mới
                 User newUser = new User();
-                newUser.setEmail(emailFromGoogle);
-                newUser.setFullName(nameFromGoogle);
+                newUser.setEmail(email);
+                newUser.setFullName(name);
                 newUser.setGoogleId(googleId);
                 newUser.setProvider(User.AuthProvider.GOOGLE);
-                newUser.setPassword(encoder.encode("GOOGLE_DEFAULT_PASS"));
+                // Tạo password ngẫu nhiên vì login bằng Google không cần password
+                newUser.setPassword(encoder.encode(UUID.randomUUID().toString()));
                 newUser.getRoles().add("ROLE_USER");
                 return userRepository.save(newUser);
             });
 
+            // Nếu user đã tồn tại (đăng ký bằng email thường trước đó) nhưng chưa link Google ID
+            if (user.getGoogleId() == null) {
+                user.setGoogleId(googleId);
+                user.setProvider(User.AuthProvider.GOOGLE);
+                userRepository.save(user);
+            }
+
+            // 4. Tạo JWT Token của hệ thống OptiStock để trả về cho Frontend
             String jwt = jwtUtils.generateJwtToken(user.getEmail());
 
-            AuthResponse response = new AuthResponse();
-            response.setToken(jwt);
-            response.setEmail(user.getEmail());
-            response.setFullName(user.getFullName());
-            response.setRoles(user.getRoles());
-            response.setMessage("Google login successful");
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setToken(jwt);
+            authResponse.setEmail(user.getEmail());
+            authResponse.setFullName(user.getFullName());
+            authResponse.setRoles(user.getRoles());
+            authResponse.setMessage("Đăng nhập Google thành công!");
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(authResponse);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "Invalid Google Token"));
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "Lỗi xác thực Google: " + e.getMessage()));
         }
     }
 
-    // --- 6. VERIFY TOKEN (kiểm tra token hợp lệ không) ---
+    // --- 6. VERIFY TOKEN (Kiểm tra token hợp lệ không) ---
     @GetMapping("/verify-token")
     public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String token) {
         try {
             String jwt = token.substring(7); // Bỏ "Bearer "
             boolean isValid = jwtUtils.validateJwtToken(jwt);
-            
+
             if (isValid) {
                 String email = jwtUtils.getUserNameFromJwtToken(jwt);
                 Map<String, Object> response = new HashMap<>();
