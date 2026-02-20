@@ -6,6 +6,8 @@ import Register from '../pages/Register/Register'; // <-- Trang Đăng ký
 import ForgotPassword from '../pages/ForgotPassword/ForgotPassword'; // <-- Trang Quên pass
 import Dashboard from '../pages/Dashboard/Dashboard'; // <-- Trang Dashboard
 import Product from '../pages/Product/Product'; // <-- (Optional) Trang Product nếu có
+import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'; // <-- Admin Dashboard
+import RoleBasedRoute from '../components/RoleBasedRoute'; // <-- Role protection
 
 const AppRouter = () => {
   return (
@@ -21,8 +23,28 @@ const AppRouter = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* --- PROTECTED ROUTES (Sau này sẽ chặn nếu chưa login) --- */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/products" element={<Product />} /> 
+        
+        {/* User Dashboard - Bất kỳ user authenticated nào cũng có thể xem */}
+        <Route path="/dashboard" element={
+          <RoleBasedRoute 
+            allowedRoles={[]} 
+            element={<Dashboard />} 
+          />
+        } />
+        <Route path="/products" element={
+          <RoleBasedRoute 
+            allowedRoles={[]} 
+            element={<Product />} 
+          />
+        } />
+        
+        {/* Admin Dashboard - Chỉ Super Admin hoặc Tenant Admin */}
+        <Route path="/admin" element={
+          <RoleBasedRoute 
+            allowedRoles={['SUPER_ADMIN', 'TENANT_ADMIN']} 
+            element={<AdminDashboard />} 
+          />
+        } /> 
 
         {/* Route bắt lỗi: Nhập link bậy bạ sẽ quay về login */}
         <Route path="*" element={<Navigate to="/login" replace />} />

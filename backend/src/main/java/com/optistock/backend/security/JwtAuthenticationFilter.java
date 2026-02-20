@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -31,10 +32,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String email = jwtUtils.getUserNameFromJwtToken(jwt);
                 
-                // Tạo Authentication object để lưu vào SecurityContext
+                // Extract roles from JWT token
+                Set<String> roles = jwtUtils.getRolesFromJwtToken(jwt);
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
                 
+                // Add roles as authorities with ROLE_ prefix
+                if (roles != null && !roles.isEmpty()) {
+                    for (String role : roles) {
+                        if (!role.startsWith("ROLE_")) {
+                            authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                        } else {
+                            authorities.add(new SimpleGrantedAuthority(role));
+                        }
+                    }
+                } else {
+                    // Default role if no roles in token
+                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                }
+                
+                // Tạo Authentication object để lưu vào SecurityContext
                 UsernamePasswordAuthenticationToken authentication = 
                     new UsernamePasswordAuthenticationToken(email, null, authorities);
                 

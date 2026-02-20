@@ -1,0 +1,112 @@
+/* ProfileInfo Component Styles */
+
+.profile-info-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #4caf50;
+}
+
+.profile-details h2 {
+  margin: 0;
+  color: #333;
+}
+
+.profile-details .email {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.user-info-section,
+.roles-section,
+.role-checks {
+  margin-bottom: 25px;
+}
+
+.user-info-section h3,
+.roles-section h3,
+.role-checks h3 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border-left: 3px solid #4caf50;
+  padding-left: 10px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: white;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.info-row .label {
+  font-weight: 600;
+  color: #555;
+}
+
+.info-row .value {
+  color: #4caf50;
+  word-break: break-all;
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.role-badge {
+  display: inline-block;
+  background: #4caf50;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.role-checks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.role-checks li {
+  padding: 10px;
+  background: white;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.role-checks strong {
+  color: #4caf50;
+  font-weight: 600;
+}

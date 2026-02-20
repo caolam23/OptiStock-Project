@@ -4,6 +4,7 @@ import com.optistock.backend.dto.AuthRequest;
 import com.optistock.backend.dto.AuthResponse;
 import com.optistock.backend.dto.ForgotPasswordRequest;
 import com.optistock.backend.dto.ResetPasswordRequest;
+import com.optistock.backend.enums.UserRole;
 import com.optistock.backend.exception.AuthException;
 import com.optistock.backend.exception.UserNotFoundException;
 import com.optistock.backend.model.User;
@@ -58,7 +59,8 @@ public class AuthService {
         user.setFullName(request.getFullName() != null ? request.getFullName() : "User");
         user.setPhoneNumber(request.getPhoneNumber());
         user.setProvider(User.AuthProvider.LOCAL);
-        user.getRoles().add("ROLE_USER");
+        // ✅ FIX: Gán STAFF role thay vì ROLE_USER
+        user.getRoles().add(UserRole.STAFF.getCode());
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
@@ -173,15 +175,27 @@ public class AuthService {
      * Build AuthResponse từ User object
      */
     private AuthResponse buildAuthResponse(User user) {
-        String token = jwtUtils.generateJwtToken(user.getEmail());
+        String token = jwtUtils.generateJwtToken(user);
+        
+        // DEBUG: Log roles từ user
+        System.out.println("🔍 DEBUG - User email: " + user.getEmail());
+        System.out.println("🔍 DEBUG - User roles (raw): " + user.getRoles());
+        System.out.println("🔍 DEBUG - User roles type: " + user.getRoles().getClass().getName());
         
         AuthResponse response = new AuthResponse();
         response.setToken(token);
+        response.setUserId(user.getId());
         response.setEmail(user.getEmail());
         response.setFullName(user.getFullName());
         response.setPhoneNumber(user.getPhoneNumber());
-        response.setRoles(user.getRoles());
+        response.setAvatar(user.getAvatar());
+        // ✅ FIX: Convert Set<String> to List<String> vì user.getRoles() trả về Set
+        response.setRoles(new java.util.ArrayList<>(user.getRoles()));
+        response.setTenantId(user.getTenantId());
+        response.setActive(user.isActive());
         response.setMessage("Đăng nhập thành công!");
+        
+        System.out.println("✅ DEBUG - Response roles: " + response.getRoles());
         
         return response;
     }

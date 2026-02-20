@@ -1,22 +1,19 @@
 package com.optistock.backend.controller;
 
-import com.optistock.backend.dto.AuthRequest;
-import com.optistock.backend.dto.AuthResponse;
-import com.optistock.backend.dto.ForgotPasswordRequest;
-import com.optistock.backend.dto.ResetPasswordRequest;
+import com.optistock.backend.dto.*;
+import com.optistock.backend.enums.UserRole;
 import com.optistock.backend.model.User;
 import com.optistock.backend.repository.UserRepository;
 import com.optistock.backend.service.AuthService;
+import com.optistock.backend.service.TenantService;
 import com.optistock.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate; // Thư viện để gọi sang Google
+import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,6 +25,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Autowired
     private PasswordEncoder encoder;
@@ -55,6 +55,10 @@ public class AuthController {
     public ResponseEntity<?> loginUser(@RequestBody AuthRequest request) {
         try {
             AuthResponse response = authService.loginUser(request.getEmail(), request.getPassword());
+            
+            // DEBUG: Log response trước khi gửi về
+            System.out.println("✅ AuthController - Login response roles: " + response.getRoles());
+            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
@@ -96,7 +100,7 @@ public class AuthController {
         }
     }
 
-    // --- 5. GOOGLE LOGIN (SSO) - ĐÃ CẬP NHẬT LOGIC THẬT ---
+    // --- 5. GOOGLE LOGIN (SSO) ---
     @PostMapping("/google-login")
     public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
         // Token này là Access Token được gửi từ Frontend (ReactJS)
@@ -112,56 +116,75 @@ public class AuthController {
 
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken); // Gắn token vào header Authorization: Bearer <token>
+            headers.setBearerAuth(accessToken);
             HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
 
-            // Gửi request GET lên Google
+            // Sử dụng Map<String, Object> để tránh cảnh báo raw type
             ResponseEntity<Map> response = restTemplate.exchange(
                     googleUserInfoUrl, HttpMethod.GET, entity, Map.class);
 
-            Map<String, Object> userInfo = response.getBody();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> userInfo = (Map<String, Object>) response.getBody();
 
             if (userInfo == null || userInfo.get("email") == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("success", false, "message", "Invalid Google Token"));
             }
 
-            // 2. Lấy thông tin thật từ phản hồi của Google
+            // 2. Lấy thông tin từ Google
             String email = (String) userInfo.get("email");
             String name = (String) userInfo.get("name");
-            String googleId = (String) userInfo.get("sub"); // Google ID duy nhất
-            // String picture = (String) userInfo.get("picture"); // Có thể lấy avatar nếu cần
+            String googleId = (String) userInfo.get("sub");
+            String picture = (String) userInfo.get("picture");
 
-            // 3. Tìm hoặc tạo User trong Database
-            User user = userRepository.findByEmail(email).orElseGet(() -> {
-                // Nếu chưa có user thì tạo mới
-                User newUser = new User();
-                newUser.setEmail(email);
-                newUser.setFullName(name);
-                newUser.setGoogleId(googleId);
-                newUser.setProvider(User.AuthProvider.GOOGLE);
-                // Tạo password ngẫu nhiên vì login bằng Google không cần password
-                newUser.setPassword(encoder.encode(UUID.randomUUID().toString()));
-                newUser.getRoles().add("ROLE_USER");
-                return userRepository.save(newUser);
-            });
+            // 3. Tìm hoặc tạo User
+            Optional<User> existingUser = userRepository.findByEmail(email);
+            User user;
+            boolean isNewUser = !existingUser.isPresent();
 
-            // Nếu user đã tồn tại (đăng ký bằng email thường trước đó) nhưng chưa link Google ID
-            if (user.getGoogleId() == null) {
+            if (isNewUser) {
+                // Tạo user mới
+                user = new User();
+                user.setEmail(email);
+                user.setFullName(name);
                 user.setGoogleId(googleId);
+                user.setAvatar(picture);
                 user.setProvider(User.AuthProvider.GOOGLE);
-                userRepository.save(user);
+                user.setPassword(encoder.encode(UUID.randomUUID().toString()));
+                user.setActive(true);
+                user.setCreatedAt(java.time.LocalDateTime.now());
+                user.setUpdatedAt(java.time.LocalDateTime.now());
+
+                // Tạo tenant mặc định cho user mới (chỉ khi là Google login lần đầu)
+                CreateTenantRequest tenantRequest = new CreateTenantRequest();
+                tenantRequest.setCompanyName(name + "'s Warehouse");
+                tenantRequest.setBusinessType("General");
+
+                try {
+                    TenantDTO tenant = tenantService.createTenant(email, tenantRequest);
+                    user.setTenantId(tenant.getTenantId());
+                } catch (Exception e) {
+                    System.err.println("Could not create default tenant: " + e.getMessage());
+                }
+
+                // Set role là TENANT_ADMIN cho user tạo kho mới (chủ kho)
+                user.getRoles().add(UserRole.TENANT_ADMIN.getCode());
+
+                user = userRepository.save(user);
+            } else {
+                user = existingUser.get();
+                // Update Google info if not set
+                if (user.getGoogleId() == null) {
+                    user.setGoogleId(googleId);
+                    user.setAvatar(picture);
+                    user.setProvider(User.AuthProvider.GOOGLE);
+                    user = userRepository.save(user);
+                }
             }
 
-            // 4. Tạo JWT Token của hệ thống OptiStock để trả về cho Frontend
-            String jwt = jwtUtils.generateJwtToken(user.getEmail());
-
-            AuthResponse authResponse = new AuthResponse();
-            authResponse.setToken(jwt);
-            authResponse.setEmail(user.getEmail());
-            authResponse.setFullName(user.getFullName());
-            authResponse.setRoles(user.getRoles());
-            authResponse.setMessage("Đăng nhập Google thành công!");
+            // 4. Tạo JWT Token và trả về response
+            AuthResponse authResponse = buildAuthResponse(user);
+            authResponse.setMessage(isNewUser ? "Đăng ký thành công! Kho hàng mặc định đã được tạo." : "Đăng nhập thành công!");
 
             return ResponseEntity.ok(authResponse);
 
@@ -181,11 +204,18 @@ public class AuthController {
 
             if (isValid) {
                 String email = jwtUtils.getUserNameFromJwtToken(jwt);
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "Token is valid");
-                response.put("email", email);
-                return ResponseEntity.ok(response);
+                String userId = jwtUtils.getUserIdFromJwtToken(jwt);
+                String tenantId = jwtUtils.getTenantIdFromJwtToken(jwt);
+                Set<String> roles = jwtUtils.getRolesFromJwtToken(jwt);
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("success", true);
+                result.put("message", "Token is valid");
+                result.put("email", email);
+                result.put("userId", userId);
+                result.put("tenantId", tenantId);
+                result.put("roles", roles);
+                return ResponseEntity.ok(result);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("success", false, "message", "Token is invalid"));
@@ -194,5 +224,24 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("success", false, "message", "Invalid token format"));
         }
+    }
+
+    // Utility method
+    private AuthResponse buildAuthResponse(User user) {
+        String token = jwtUtils.generateJwtToken(user);
+
+        AuthResponse response = new AuthResponse();
+        response.setToken(token);
+        response.setUserId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFullName(user.getFullName());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setAvatar(user.getAvatar());
+        // ✅ FIX: Convert Set<String> to List<String> vì user.getRoles() trả về Set
+        response.setRoles(new java.util.ArrayList<>(user.getRoles()));
+        response.setTenantId(user.getTenantId());
+        response.setActive(user.isActive());
+
+        return response;
     }
 }

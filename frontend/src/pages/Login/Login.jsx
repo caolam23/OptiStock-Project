@@ -33,12 +33,30 @@ const Login = () => {
     setSuccessMessage(null);
 
     try {
-      // Gọi hàm login từ AuthContext (hoặc authApi.login trực tiếp nếu chưa có context)
-      await login(values.email, values.password);
+      // Gọi hàm login từ AuthContext
+      const response = await login(values.email, values.password);
       
       setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
+      
+      // DEBUG: Kiểm tra response từ backend
+      console.log('🔍 Full response:', response);
+      console.log('📦 Roles received:', response?.roles);
+      console.log('📦 Roles type:', typeof response?.roles);
+      
+      // Kiểm tra role để redirect đúng trang
       setTimeout(() => {
-        navigate('/dashboard');
+        const roles = response?.roles || [];
+        console.log('✅ Checking roles:', roles);
+        console.log('✅ Has SUPER_ADMIN:', roles.includes('SUPER_ADMIN'));
+        console.log('✅ Has TENANT_ADMIN:', roles.includes('TENANT_ADMIN'));
+        
+        if (roles.includes('SUPER_ADMIN') || roles.includes('TENANT_ADMIN')) {
+          console.log('🔓 Redirecting to /admin');
+          navigate('/admin');
+        } else {
+          console.log('🔒 Redirecting to /dashboard');
+          navigate('/dashboard');
+        }
       }, 1500);
     } catch (err) {
       console.error('Login error:', err);
@@ -73,18 +91,33 @@ const Login = () => {
       const data = res.data || res; 
 
       if (data && data.token) {
-          // Lưu token vào localStorage
-          localStorage.setItem('accessToken', data.token);
+          // Lưu token vào localStorage (thống nhất với login thường)
+          localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify({
+              userId: data.userId,
               email: data.email,
               fullName: data.fullName,
-              roles: data.roles
+              roles: data.roles,
+              tenantId: data.tenantId,
+              avatar: data.avatar,
+              isActive: data.isActive
           }));
 
           setSuccessMessage('Đăng nhập Google thành công!');
+          
+          // DEBUG: Kiểm tra roles
+          console.log('🔍 Google Login - Roles:', data.roles);
+          
+          // Kiểm tra role để redirect đúng trang (giống login thường)
           setTimeout(() => {
-              navigate('/dashboard');
-              // Reload trang nếu cần update Context: window.location.reload();
+              const roles = data.roles || [];
+              if (roles.includes('SUPER_ADMIN') || roles.includes('TENANT_ADMIN')) {
+                  console.log('🔓 Google Login - Redirecting to /admin');
+                  navigate('/admin');
+              } else {
+                  console.log('🔒 Google Login - Redirecting to /dashboard');
+                  navigate('/dashboard');
+              }
           }, 1500);
       }
     } catch (err) {

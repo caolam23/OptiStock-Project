@@ -10,6 +10,11 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [tenantId, setTenantId] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [avatar, setAvatar] = useState(null);
+  const [isActive, setIsActive] = useState(true);
 
   // Khởi tạo - kiểm tra token từ localStorage
   useEffect(() => {
@@ -17,62 +22,181 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('user');
     
     if (savedToken && savedUser) {
+      const userObj = JSON.parse(savedUser);
       setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      setUser(userObj);
+      setUserId(userObj.userId);
+      setTenantId(userObj.tenantId);
+      setRoles(userObj.roles || []);
+      setAvatar(userObj.avatar);
+      setIsActive(userObj.isActive !== false);
       setIsAuthenticated(true);
     }
     
     setLoading(false);
   }, []);
 
+  // Utility function - Check if user has specific role
+  const hasRole = (roleName) => {
+    return roles && roles.includes(roleName);
+  };
+
+  const isSuperAdmin = () => {
+    return hasRole('SUPER_ADMIN');
+  };
+
+  const isTenantAdmin = () => {
+    return hasRole('TENANT_ADMIN');
+  };
+
+  const isStaff = () => {
+    return hasRole('STAFF');
+  };
+
+  const isAccountant = () => {
+    return hasRole('ACCOUNTANT');
+  };
+
   // Login
   const login = async (email, password) => {
+    setLoading(true);
     try {
       const response = await authApi.login({ email, password });
-      const { token, email: userEmail, fullName, roles } = response.data;
-
-      // Lưu token và user vào localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify({ 
+      const { 
+        token: newToken, 
+        userId: newUserId,
         email: userEmail, 
         fullName, 
-        roles 
-      }));
+        roles: newRoles,
+        tenantId: newTenantId,
+        avatar: newAvatar,
+        isActive: newIsActive
+      } = response.data;
 
-      // Cập nhật state
-      setToken(token);
-      setUser({ email: userEmail, fullName, roles });
+      // Lưu token và user vào localStorage
+      localStorage.setItem('token', newToken);
+      const userDataToSave = {
+        userId: newUserId,
+        email: userEmail, 
+        fullName, 
+        roles: newRoles,
+        tenantId: newTenantId,
+        avatar: newAvatar,
+        isActive: newIsActive
+      };
+      localStorage.setItem('user', JSON.stringify(userDataToSave));
+
+      // Cập nhật state - ✅ FIX: Lưu đầy đủ user object
+      setToken(newToken);
+      setUserId(newUserId);
+      setUser(userDataToSave);
+      setRoles(newRoles || []);
+      setTenantId(newTenantId);
+      setAvatar(newAvatar);
+      setIsActive(newIsActive !== false);
       setIsAuthenticated(true);
+      setLoading(false);
 
       return response.data;
     } catch (error) {
       setIsAuthenticated(false);
+      setLoading(false);
       throw error;
     }
   };
 
   // Register
   const register = async (formData) => {
+    setLoading(true);
     try {
       const response = await authApi.register(formData);
-      const { token, email, fullName, roles } = response.data;
-
-      // Lưu token và user
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify({ 
+      const { 
+        token: newToken, 
+        userId: newUserId,
         email, 
         fullName, 
-        roles 
-      }));
+        roles: newRoles,
+        tenantId: newTenantId,
+        avatar: newAvatar,
+        isActive: newIsActive
+      } = response.data;
 
-      // Cập nhật state
-      setToken(token);
-      setUser({ email, fullName, roles });
+      // Lưu token và user
+      localStorage.setItem('token', newToken);
+      const userDataToSave = {
+        userId: newUserId,
+        email, 
+        fullName, 
+        roles: newRoles,
+        tenantId: newTenantId,
+        avatar: newAvatar,
+        isActive: newIsActive
+      };
+      localStorage.setItem('user', JSON.stringify(userDataToSave));
+
+      // Cập nhật state - ✅ FIX: Lưu đầy đủ user object
+      setToken(newToken);
+      setUserId(newUserId);
+      setUser(userDataToSave);
+      setRoles(newRoles || []);
+      setTenantId(newTenantId);
+      setAvatar(newAvatar);
+      setIsActive(newIsActive !== false);
       setIsAuthenticated(true);
+      setLoading(false);
 
       return response.data;
     } catch (error) {
       setIsAuthenticated(false);
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  // Google Login
+  const googleLogin = async (token) => {
+    setLoading(true);
+    try {
+      const response = await authApi.googleLogin({ token });
+      const { 
+        token: newToken, 
+        userId: newUserId,
+        email, 
+        fullName, 
+        roles: newRoles,
+        tenantId: newTenantId,
+        avatar: newAvatar,
+        isActive: newIsActive
+      } = response.data;
+
+      // Lưu token và user
+      localStorage.setItem('token', newToken);
+      const userDataToSave = {
+        userId: newUserId,
+        email, 
+        fullName, 
+        roles: newRoles,
+        tenantId: newTenantId,
+        avatar: newAvatar,
+        isActive: newIsActive
+      };
+      localStorage.setItem('user', JSON.stringify(userDataToSave));
+
+      // Cập nhật state - ✅ FIX: Lưu đầy đủ user object
+      setToken(newToken);
+      setUserId(newUserId);
+      setUser(userDataToSave);
+      setRoles(newRoles || []);
+      setTenantId(newTenantId);
+      setAvatar(newAvatar);
+      setIsActive(newIsActive !== false);
+      setIsAuthenticated(true);
+      setLoading(false);
+
+      return response.data;
+    } catch (error) {
+      setIsAuthenticated(false);
+      setLoading(false);
       throw error;
     }
   };
@@ -82,7 +206,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);
+    setUserId(null);
     setUser(null);
+    setRoles([]);
+    setTenantId(null);
+    setAvatar(null);
+    setIsActive(true);
     setIsAuthenticated(false);
   };
 
@@ -102,15 +231,31 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
+    // State
     user,
     token,
     loading,
     isAuthenticated,
+    userId,
+    tenantId,
+    roles,
+    avatar,
+    isActive,
+    
+    // Methods
     login,
     register,
+    googleLogin,
     logout,
     sendOtp,
     resetPassword,
+    
+    // Utility methods
+    hasRole,
+    isSuperAdmin,
+    isTenantAdmin,
+    isStaff,
+    isAccountant,
   };
 
   return (

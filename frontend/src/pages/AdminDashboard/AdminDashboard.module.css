@@ -1,0 +1,358 @@
+/* AdminDashboard.module.css */
+
+.adminDashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboardHeader {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.dashboardHeader h1 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.dashboardHeader p {
+  margin: 10px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.errorMessage {
+  background: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.tabButton {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tabButton:hover {
+  color: #333;
+}
+
+.tabButton.active {
+  color: #4caf50;
+  border-bottom-color: #4caf50;
+}
+
+/* Tab Content */
+.tabContent {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Tenants Section */
+.tenantsSection,
+.myTenantSection {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tenantsSection h2,
+.myTenantSection h2 {
+  margin-top: 0;
+  color: #333;
+  border-left: 3px solid #4caf50;
+  padding-left: 10px;
+}
+
+/* Tenants Table */
+.tenantsTable {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.tenantsTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tenantsTable thead {
+  background: #f5f5f5;
+}
+
+.tenantsTable th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tenantsTable td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #666;
+}
+
+.tenantsTable tbody tr:hover {
+  background: #f9f9f9;
+}
+
+/* Status Badge */
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusBadge.active {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.statusBadge.inactive {
+  background: #ffccbc;
+  color: #d84315;
+}
+
+.statusBadge.locked {
+  background: #ffcdd2;
+  color: #c62828;
+}
+
+.statusBadge.suspended {
+  background: #fff9c4;
+  color: #f57f17;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnPrimary,
+.btnSuccess,
+.btnDanger {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btnPrimary {
+  background: #4caf50;
+  color: white;
+}
+
+.btnPrimary:hover {
+  background: #45a049;
+}
+
+.btnSuccess {
+  background: #66bb6a;
+  color: white;
+}
+
+.btnSuccess:hover {
+  background: #5cb85c;
+}
+
+.btnDanger {
+  background: #ef5350;
+  color: white;
+}
+
+.btnDanger:hover {
+  background: #d32f2f;
+}
+
+/* Users Section */
+.usersSection {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.usersSection h2 {
+  margin-top: 0;
+  color: #333;
+  border-left: 3px solid #2196f3;
+  padding-left: 10px;
+}
+
+/* Users Table */
+.usersTable {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.usersTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.usersTable thead {
+  background: #f5f5f5;
+}
+
+.usersTable th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.usersTable td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  color: #666;
+}
+
+.usersTable tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.userAvatar {
+  display: block;
+  margin: 0 auto;
+}
+
+.userAvatarPlaceholder {
+  font-weight: 600;
+  color: #666;
+  font-size: 16px;
+}
+
+.usersTable .statusBadge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.usersTable .statusBadge.active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.usersTable .statusBadge.inactive {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.usersTable .actions {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.btnWarning {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  font-size: 13px;
+}
+
+.btnWarning:hover {
+  background: #f57c00;
+}
+
+/* My Tenant Section */
+.tenantInfoCard {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.infoGroup {
+  margin-bottom: 20px;
+}
+
+.infoGroup label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.infoGroup p {
+  margin: 0;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tenantsTable,
+  .usersTable {
+    font-size: 13px;
+  }
+
+  .tenantsTable th,
+  .tenantsTable td,
+  .usersTable th,
+  .usersTable td {
+    padding: 8px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .btnPrimary,
+  .btnSuccess,
+  .btnDanger,
+  .btnWarning {
+    width: 100%;
+  }
+}

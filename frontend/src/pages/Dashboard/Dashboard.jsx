@@ -1,5 +1,5 @@
-import React from 'react';
-import { Layout, Button, Dropdown, Avatar, Typography } from 'antd';
+import React, { useEffect } from 'react';
+import { Layout, Button, Dropdown, Avatar, Typography, Spin } from 'antd';
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -10,7 +10,45 @@ const { Title, Text } = Typography;
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, roles, loading } = useAuth();
+
+  // ✅ Kiểm tra bảo vệ: Nếu admin vô đây thì chuyển sang AdminDashboard
+  useEffect(() => {
+    if (!loading && roles && (roles.includes('SUPER_ADMIN') || roles.includes('TENANT_ADMIN'))) {
+      console.warn('⚠️ Admin detected in Dashboard, redirecting to AdminDashboard');
+      navigate('/admin', { replace: true });
+    }
+  }, [roles, navigate, loading]);
+
+  // ✅ Hiển thị loading screen nếu dữ liệu chưa load
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: '#f0f2f5'
+      }}>
+        <Spin size="large" tip="Đang tải dữ liệu..." />
+      </div>
+    );
+  }
+
+  // ✅ Safety check: Nếu không có user data, hiển thị loading
+  if (!user || !user.email) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: '#f0f2f5'
+      }}>
+        <Spin size="large" tip="Đang tải thông tin người dùng..." />
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     logout();

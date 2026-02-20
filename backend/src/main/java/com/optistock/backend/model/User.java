@@ -16,9 +16,11 @@ public class User {
     private String phoneNumber;
     
     private Set<String> roles = new HashSet<>();
+    private String tenantId; // Multi-tenancy support
     private AuthProvider provider;
     private String googleId;
     private String avatar;
+    private boolean isActive = true;
     
     // OTP fields cho reset password
     private String resetOtp;
@@ -154,5 +156,21 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }
