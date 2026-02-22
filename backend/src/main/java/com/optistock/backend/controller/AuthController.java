@@ -166,9 +166,7 @@ public class AuthController {
                 } catch (Exception e) {
                     System.err.println("Could not create default tenant: " + e.getMessage());
                 }
-
-                // Set role là TENANT_ADMIN cho user tạo kho mới (chủ kho)
-                user.getRoles().add(UserRole.TENANT_ADMIN.getCode());
+                user.getRoles().add(UserRole.STAFF.getCode());
 
                 user = userRepository.save(user);
             } else {
