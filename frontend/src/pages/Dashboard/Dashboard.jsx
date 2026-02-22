@@ -14,7 +14,7 @@ const Dashboard = () => {
 
   // ✅ Kiểm tra bảo vệ: Nếu admin vô đây thì chuyển sang AdminDashboard
   useEffect(() => {
-    if (!loading && roles && (roles.includes('SUPER_ADMIN') || roles.includes('TENANT_ADMIN'))) {
+    if (!loading && roles && (roles.includes('SUPER_ADMIN') || roles.includes('MANAGER'))) {
       console.warn('⚠️ Admin detected in Dashboard, redirecting to AdminDashboard');
       navigate('/admin', { replace: true });
     }

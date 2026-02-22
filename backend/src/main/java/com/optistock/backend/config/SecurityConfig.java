@@ -18,11 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.List;
 
 @Configuration
-@EnableMethodSecurity(
-    securedEnabled = true,
-    jsr250Enabled = true,
-    prePostEnabled = true
-)
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -44,34 +40,44 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(request -> {
-                CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5173"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(true);
-                return config;
-            }))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/google-login", 
-                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
-                .requestMatchers("/api/auth/verify-token").permitAll()
-                .requestMatchers("/api/admin/**").authenticated()
-                .anyRequest().authenticated()
-            );
-            
-        // --- SỬA LỖI TẠI ĐÂY ---
-        
-        // 1. Thêm JWT Filter TRƯỚC UsernamePasswordAuthenticationFilter
-        // (Để giải mã token lấy thông tin user)
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(List.of("http://localhost:5173"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // === PUBLIC — Ai cũng vào được ===
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/google-login",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/api/auth/verify-token")
+                        .permitAll()
+
+                        // === SUPER_ADMIN ONLY — Quản trị toàn hệ thống ===
+                        .requestMatchers("/api/admin/system/**").hasRole("SUPER_ADMIN")
+
+                        // === MANAGER ONLY — Quản trị viên kho (chủ kho) ===
+                        .requestMatchers("/api/admin/tenant/users/invite").hasRole("MANAGER")
+                        .requestMatchers("/api/admin/tenant/users/*/role").hasRole("MANAGER")
+
+                        // === MANAGER — Quản lý team trong kho ===
+                        .requestMatchers("/api/admin/tenant/**").hasRole("MANAGER")
+
+                        // === Tất cả API còn lại cần đăng nhập ===
+                        .anyRequest().authenticated());
+
+        // JWT Filter trước, Tenant Access Filter sau
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        
-        // 2. Thêm Tenant Access Filter SAU UsernamePasswordAuthenticationFilter
-        // (Lúc này JWT filter đã chạy xong, đã có thông tin user để check tenant)
         http.addFilterAfter(tenantAccessFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 }

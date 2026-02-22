@@ -5,7 +5,7 @@ import ProfileInfo from "../../components/ProfileInfo";
 import styles from './AdminDashboard.module.css'; // Sửa import thành CSS Module
 
 const AdminDashboard = () => {
-  const { isSuperAdmin, tenantId } = useAuth();
+  const { isSuperAdmin, currentTenantId } = useAuth();
   const [tenants, setTenants] = useState([]);
   const [users, setUsers] = useState([]);
   const [myTenant, setMyTenant] = useState(null);
@@ -207,19 +207,19 @@ const AdminDashboard = () => {
                         <td>{idx + 1}</td>
                         <td>
                           {user.avatar ? (
-                            <img 
-                              src={user.avatar} 
-                              alt={user.fullName} 
-                              className={styles.userAvatar} 
-                              style={{width: '40px', height: '40px', borderRadius: '50%'}}
+                            <img
+                              src={user.avatar}
+                              alt={user.fullName}
+                              className={styles.userAvatar}
+                              style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                             />
                           ) : (
-                            <div 
+                            <div
                               className={styles.userAvatarPlaceholder}
                               style={{
-                                width: '40px', 
-                                height: '40px', 
-                                borderRadius: '50%', 
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
                                 backgroundColor: '#ddd',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -233,11 +233,11 @@ const AdminDashboard = () => {
                         <td>{user.fullName || 'N/A'}</td>
                         <td>{user.email}</td>
                         <td>
-                          <span style={{fontSize: '12px', backgroundColor: '#e3f2fd', padding: '4px 8px', borderRadius: '4px'}}>
-                            {user.roles?.join(', ') || 'N/A'}
+                          <span style={{ fontSize: '12px', backgroundColor: '#e3f2fd', padding: '4px 8px', borderRadius: '4px' }}>
+                            {user.memberships?.map(m => m.role).join(', ') || 'N/A'}
                           </span>
                         </td>
-                        <td>{user.tenantId || 'Không có'}</td>
+                        <td>{user.memberships?.map(m => m.tenantName || m.tenantId).join(', ') || 'Chua c� kho'}</td>
                         <td>
                           <span className={`${styles.statusBadge} ${user.isActive ? styles.active : styles.inactive}`}>
                             {user.isActive ? 'Hoạt động' : 'Vô hiệu'}
@@ -247,15 +247,15 @@ const AdminDashboard = () => {
                           {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                         </td>
                         <td className={styles.actions}>
-                          {user.roles?.includes('SUPER_ADMIN') ? (
-                            <span style={{color: '#666', fontSize: '12px'}}>Super Admin</span>
+                          {user.memberships?.some(m => m.role === 'SUPER_ADMIN') ? (
+                            <span style={{ color: '#666', fontSize: '12px' }}>Super Admin</span>
                           ) : (
                             <>
                               {user.isActive ? (
                                 <button
                                   className={styles.btnWarning}
                                   onClick={() => deactivateUser(user.id)}
-                                  style={{marginRight: '5px', padding: '4px 8px', fontSize: '12px'}}
+                                  style={{ marginRight: '5px', padding: '4px 8px', fontSize: '12px' }}
                                 >
                                   Vô hiệu
                                 </button>
@@ -263,7 +263,7 @@ const AdminDashboard = () => {
                                 <button
                                   className={styles.btnSuccess}
                                   onClick={() => activateUser(user.id)}
-                                  style={{marginRight: '5px', padding: '4px 8px', fontSize: '12px'}}
+                                  style={{ marginRight: '5px', padding: '4px 8px', fontSize: '12px' }}
                                 >
                                   Kích hoạt
                                 </button>
@@ -271,7 +271,7 @@ const AdminDashboard = () => {
                               <button
                                 className={styles.btnDanger}
                                 onClick={() => deleteUser(user.id, user.email)}
-                                style={{padding: '4px 8px', fontSize: '12px'}}
+                                style={{ padding: '4px 8px', fontSize: '12px' }}
                               >
                                 Xóa
                               </button>

@@ -2,10 +2,10 @@ package com.optistock.backend.enums;
 
 public enum UserRole {
     SUPER_ADMIN("SUPER_ADMIN", "Quản trị viên toàn hệ thống"),
-    TENANT_ADMIN("TENANT_ADMIN", "Quản trị viên kho"),
+    MANAGER("MANAGER", "Chủ kho / Quản lý kho"),
     STAFF("STAFF", "Nhân viên kho"),
-    ACCOUNTANT("ACCOUNTANT", "Kế toán"),
-    MANAGER("MANAGER", "Quản lý kho");
+    ACCOUNTANT("ACCOUNTANT", "Kế toán kho"),
+    SALE("SALE", "Nhân viên bán hàng");
 
     private final String code;
     private final String description;

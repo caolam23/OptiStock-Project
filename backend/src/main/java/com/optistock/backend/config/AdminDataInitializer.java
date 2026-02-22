@@ -21,35 +21,69 @@ public class AdminDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        initializeAdminUser();
+        initializeSuperAdmin();
+        migrateTenantAdminToManager();
     }
 
-    private void initializeAdminUser() {
-        // Kiểm tra xem admin user đã tồn tại chưa
-        boolean adminExists = userRepository.existsByEmail("admin@optistock.com");
+    /**
+     * Migration: đổi tất cả TENANT_ADMIN → MANAGER cho user cũ trong DB.
+     * TENANT_ADMIN đã bị xóa, gộp vào MANAGER (chủ kho + quản lý kho).
+     */
+    private void migrateTenantAdminToManager() {
+        java.util.List<User> allUsers = userRepository.findAll();
+        int migratedCount = 0;
 
-        if (!adminExists) {
-            // Tạo Super Admin user
-            User adminUser = new User();
-            adminUser.setEmail("admin@optistock.com");
-            adminUser.setPassword(passwordEncoder.encode("admin123"));
-            adminUser.setFullName("Super Admin");
-            adminUser.setPhoneNumber("+84123456789");
+        for (User user : allUsers) {
+            boolean changed = false;
+            for (var membership : user.getMemberships()) {
+                if ("TENANT_ADMIN".equals(membership.getRole())) {
+                    membership.setRole(UserRole.MANAGER.getCode());
+                    changed = true;
+                }
+            }
+            if (changed) {
+                user.setUpdatedAt(LocalDateTime.now());
+                userRepository.save(user);
+                migratedCount++;
+            }
+        }
+
+        if (migratedCount > 0) {
+            System.out.println("✅ Migrated " + migratedCount + " user(s): TENANT_ADMIN → MANAGER");
+        }
+    }
+
+    private void initializeSuperAdmin() {
+        User adminUser = userRepository.findByEmail("admin@optistock.com").orElse(null);
+
+        if (adminUser == null) {
+            // Tạo mới
+            adminUser = new User(
+                    "admin@optistock.com",
+                    passwordEncoder.encode("admin123"),
+                    "Super Admin",
+                    "+84123456789");
             adminUser.setProvider(User.AuthProvider.LOCAL);
             adminUser.setActive(true);
-            adminUser.getRoles().add(UserRole.SUPER_ADMIN.getCode());
-            adminUser.setTenantId(null); // Super Admin không thuộc tenant nào
-            adminUser.setAvatar(null);
             adminUser.setCreatedAt(LocalDateTime.now());
             adminUser.setUpdatedAt(LocalDateTime.now());
 
+            adminUser.addOrUpdateMembership("SYSTEM", UserRole.SUPER_ADMIN.getCode());
             userRepository.save(adminUser);
-            System.out.println("✅ Super Admin user created successfully!");
-            System.out.println("   Email: admin@optistock.com");
-            System.out.println("   Password: admin123");
-            System.out.println("   Role: SUPER_ADMIN");
+            System.out.println("✅ Super Admin created: admin@optistock.com / admin123");
         } else {
-            System.out.println("✅ Super Admin user already exists.");
+            // User cũ đã tồn tại — đảm bảo có SUPER_ADMIN membership (xử lý format cũ)
+            boolean hasSuperAdmin = adminUser.getMemberships().stream()
+                    .anyMatch(m -> UserRole.SUPER_ADMIN.getCode().equals(m.getRole()));
+
+            if (!hasSuperAdmin) {
+                adminUser.addOrUpdateMembership("SYSTEM", UserRole.SUPER_ADMIN.getCode());
+                adminUser.setUpdatedAt(LocalDateTime.now());
+                userRepository.save(adminUser);
+                System.out.println("✅ Super Admin membership updated for existing user.");
+            } else {
+                System.out.println("✅ Super Admin already exists and is up to date.");
+            }
         }
     }
 }

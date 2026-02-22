@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox, Spin, Alert as AntAlert } from 'antd';
-import { 
-  DropboxOutlined, 
-  CodeSandboxOutlined, 
-  EyeInvisibleOutlined, 
-  EyeTwoTone 
+import {
+  DropboxOutlined,
+  CodeSandboxOutlined,
+  EyeInvisibleOutlined,
+  EyeTwoTone
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -30,12 +30,13 @@ const Login = () => {
     try {
       const response = await login(values.email, values.password);
       setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
-      
+
       setTimeout(() => {
-        const roles = response?.roles || []; 
-        
-        if (roles.includes('SUPER_ADMIN')) {
-          // Ép reload nhẹ để AuthContext kịp cập nhật data từ localStorage
+        // Đọc memberships (format mới) thay vì roles (format cũ)
+        const memberships = response?.memberships || [];
+        const isSuperAdmin = memberships.some(m => m.role === 'SUPER_ADMIN');
+
+        if (isSuperAdmin) {
           window.location.href = '/admin';
         } else {
           window.location.href = '/dashboard';
@@ -60,33 +61,32 @@ const Login = () => {
     setError(null);
     try {
       const res = await authApi.loginGoogle(tokenResponse.access_token);
-      const data = res.data || res; 
+      const data = res.data || res;
 
       if (data && data.token) {
-          // Lưu token vào localStorage
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify({
-              userId: data.userId,
-              email: data.email,
-              fullName: data.fullName,
-              roles: data.roles,
-              tenantId: data.tenantId,
-              avatar: data.avatar,
-              isActive: data.isActive
-          }));
+        // Lưu token vào localStorage (format mới: memberships thay vì roles+tenantId)
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify({
+          userId: data.userId,
+          email: data.email,
+          fullName: data.fullName,
+          memberships: data.memberships || [],
+          avatar: data.avatar,
+          isActive: data.isActive
+        }));
 
-          setSuccessMessage('Đăng nhập Google thành công!');
-          
-          setTimeout(() => {
-              const roles = data.roles || [];
-              
-              if (roles.includes('SUPER_ADMIN')) {
-                  // Ép reload nhẹ để AuthContext kịp cập nhật data từ localStorage
-                  window.location.href = '/admin';
-              } else {
-                  window.location.href = '/dashboard';
-              }
-          }, 1500);
+        setSuccessMessage('Đăng nhập Google thành công!');
+
+        setTimeout(() => {
+          const memberships = data.memberships || [];
+          const isSuperAdmin = memberships.some(m => m.role === 'SUPER_ADMIN');
+
+          if (isSuperAdmin) {
+            window.location.href = '/admin';
+          } else {
+            window.location.href = '/dashboard';
+          }
+        }, 1500);
       }
     } catch (err) {
       console.error('Google Backend Error:', err);
@@ -106,7 +106,7 @@ const Login = () => {
       <div className={styles.brandSection}>
         <div className={`${styles.circleBg} ${styles.c1}`}></div>
         <div className={`${styles.circleBg} ${styles.c2}`}></div>
-        
+
         <div className={styles.brandContent}>
           <div className={styles.imagePlaceholder}>
             <DropboxOutlined style={{ fontSize: '120px', color: '#F59E0B' }} />
@@ -118,7 +118,7 @@ const Login = () => {
 
       <div className={styles.loginSection}>
         <div className={styles.loginWrapper}>
-          
+
           <div className={styles.logoHeader}>
             <div className={styles.logoIcon}>
               <CodeSandboxOutlined />
@@ -146,7 +146,7 @@ const Login = () => {
               </Form.Item>
 
               <Form.Item label={<span className={styles.formLabel}>Mật khẩu</span>} name="password" rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }, { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự!' }]}>
-                <Input.Password placeholder="••••••••" className={styles.inputField} disabled={loading} iconRender={(visible) => (visible ? <EyeTwoTone twoToneColor="#F59E0B"/> : <EyeInvisibleOutlined />)} />
+                <Input.Password placeholder="••••••••" className={styles.inputField} disabled={loading} iconRender={(visible) => (visible ? <EyeTwoTone twoToneColor="#F59E0B" /> : <EyeInvisibleOutlined />)} />
               </Form.Item>
 
               <div className={styles.formOptions}>

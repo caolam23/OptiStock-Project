@@ -1,8 +1,13 @@
 package com.optistock.backend.dto;
 
+import com.optistock.backend.model.TenantMembership;
 import java.util.List;
-import java.util.Set;
 
+/**
+ * Response trả về sau login/register/google-login.
+ * memberships chứa danh sách kho + role của user — thay thế cho tenantId +
+ * roles cũ.
+ */
 public class AuthResponse {
     private String token;
     private String refreshToken;
@@ -11,28 +16,18 @@ public class AuthResponse {
     private String fullName;
     private String phoneNumber;
     private String avatar;
-    private List<String> roles;
-    private String tenantId;
     private boolean isActive;
     private String message;
 
+    /**
+     * Danh sách kho + role của user.
+     * VD: [{tenantId: "kho-a", role: "MANAGER"}, {tenantId: "kho-b", role:
+     * "STAFF"}]
+     */
+    private List<TenantMembership> memberships;
+
     // Constructors
     public AuthResponse() {
-    }
-
-    public AuthResponse(String token, String email, String fullName, List<String> roles) {
-        this.token = token;
-        this.email = email;
-        this.fullName = fullName;
-        this.roles = roles;
-    }
-
-    public AuthResponse(String token, String email, String fullName, String phoneNumber, List<String> roles) {
-        this.token = token;
-        this.email = email;
-        this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.roles = roles;
     }
 
     // Getters & Setters
@@ -92,22 +87,6 @@ public class AuthResponse {
         this.avatar = avatar;
     }
 
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
-    }
-
-    public String getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(String tenantId) {
-        this.tenantId = tenantId;
-    }
-
     public boolean isActive() {
         return isActive;
     }
@@ -122,5 +101,13 @@ public class AuthResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public List<TenantMembership> getMemberships() {
+        return memberships;
+    }
+
+    public void setMemberships(List<TenantMembership> memberships) {
+        this.memberships = memberships;
     }
 }

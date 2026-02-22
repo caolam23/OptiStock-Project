@@ -29,48 +29,65 @@ public class TenantAccessFilter extends OncePerRequestFilter {
             "/api/auth/google-login",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
-            "/api/auth/verify-token"
-    );
+            "/api/auth/verify-token");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Skip excluded paths
         String requestPath = request.getRequestURI();
+
+        // Bỏ qua các đường dẫn public
         if (EXCLUDED_PATHS.stream().anyMatch(requestPath::startsWith)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extract JWT token from header
+        // SUPER_ADMIN — không cần tenant check
+        if (requestPath.startsWith("/api/admin/system")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             String jwt = bearerToken.substring(7);
+            String tenantId = request.getHeader("X-Tenant-Id");
 
-            try {
-                // Extract tenantId from JWT
-                String tenantId = jwtUtils.getTenantIdFromJwtToken(jwt);
+            // Nếu có X-Tenant-Id header → kiểm tra user có phải member không + tenant còn
+            // active không
+            if (tenantId != null && !tenantId.isEmpty()) {
+                try {
+                    // 1. Kiểm tra user có phải member của tenant này không
+                    boolean isMember = jwtUtils.isMemberOfTenant(jwt, tenantId);
+                    if (!isMember) {
+                        writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                                "Bạn không phải thành viên của kho này");
+                        return;
+                    }
 
-                // If request is not for admin (super admin doesn't need tenant check)
-                if (tenantId != null && !requestPath.startsWith("/api/admin")) {
-                    // Check if tenant is active
+                    // 2. Kiểm tra tenant có đang active không
                     boolean isTenantActive = tenantRepository.findByTenantId(tenantId)
                             .map(tenant -> tenant.isActive())
                             .orElse(false);
 
                     if (!isTenantActive) {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.setContentType("application/json");
-                        response.getWriter().write("{\"success\": false, \"message\": \"Tenant locked or subscription expired\"}");
+                        writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN,
+                                "Kho hàng đã bị khóa hoặc hết hạn đăng ký");
                         return;
                     }
+                } catch (Exception e) {
+                    logger.error("Error checking tenant access: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                logger.error("Error checking tenant status: " + e.getMessage());
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"success\": false, \"message\": \"" + message + "\"}");
     }
 }

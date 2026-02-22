@@ -1,5 +1,6 @@
 package com.optistock.backend.security;
 
+import com.optistock.backend.model.TenantMembership;
 import com.optistock.backend.util.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -31,29 +31,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String email = jwtUtils.getUserNameFromJwtToken(jwt);
-                
-                // Extract roles from JWT token
-                Set<String> roles = jwtUtils.getRolesFromJwtToken(jwt);
+
+                // Lấy X-Tenant-Id header — biết user đang làm việc với kho nào
+                String currentTenantId = request.getHeader("X-Tenant-Id");
+
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                
-                // Add roles as authorities with ROLE_ prefix
-                if (roles != null && !roles.isEmpty()) {
-                    for (String role : roles) {
+
+                if (currentTenantId != null && !currentTenantId.isEmpty()) {
+                    // Lấy role của user trong tenant hiện tại
+                    String roleInTenant = jwtUtils.getRoleInTenantFromJwtToken(jwt, currentTenantId);
+                    if (roleInTenant != null) {
+                        // Add role với ROLE_ prefix (Spring Security convention)
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + roleInTenant));
+                    }
+                } else {
+                    // Không có X-Tenant-Id → load tất cả roles từ tất cả memberships
+                    // (dùng cho SUPER_ADMIN hoặc các endpoint không cần tenant context)
+                    List<TenantMembership> memberships = jwtUtils.getMembershipsFromJwtToken(jwt);
+                    for (TenantMembership m : memberships) {
+                        String role = m.getRole();
                         if (!role.startsWith("ROLE_")) {
                             authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
                         } else {
                             authorities.add(new SimpleGrantedAuthority(role));
                         }
                     }
-                } else {
-                    // Default role if no roles in token
-                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                    // Nếu không có membership nào (user chưa thuộc kho nào)
+                    if (authorities.isEmpty()) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                    }
                 }
-                
-                // Tạo Authentication object để lưu vào SecurityContext
-                UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(email, null, authorities);
-                
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
+                        null, authorities);
+
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
@@ -63,13 +74,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Tách JWT token từ header "Authorization: Bearer <token>"
-     */
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Bỏ "Bearer " (7 ký tự)
+            return bearerToken.substring(7);
         }
         return null;
     }

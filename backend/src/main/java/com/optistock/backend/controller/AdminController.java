@@ -1,24 +1,28 @@
 package com.optistock.backend.controller;
 
+import com.optistock.backend.dto.AssignRoleRequest;
+import com.optistock.backend.dto.InviteUserRequest;
 import com.optistock.backend.dto.TenantDTO;
 import com.optistock.backend.enums.TenantStatus;
 import com.optistock.backend.enums.UserRole;
 import com.optistock.backend.exception.AuthException;
 import com.optistock.backend.model.User;
+import com.optistock.backend.repository.TenantRepository;
 import com.optistock.backend.repository.UserRepository;
 import com.optistock.backend.security.annotation.RequireRole;
+import com.optistock.backend.service.AuthService;
 import com.optistock.backend.service.TenantService;
+import com.optistock.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,258 +34,329 @@ public class AdminController {
     private TenantService tenantService;
 
     @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
-    /**
-     * SUPER ADMIN: Xem danh sách tất cả tenants
-     */
-    @GetMapping("/tenants")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền xem danh sách công ty")
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // =====================================================================
+    // SUPER_ADMIN ONLY — prefix: /api/admin/system
+    // =====================================================================
+
+    /** SUPER_ADMIN: Xem tất cả tenants trong hệ thống */
+    @GetMapping("/system/tenants")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> getAllTenants() {
         try {
             List<TenantDTO> tenants = tenantService.getAllTenants();
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", tenants);
-            response.put("total", tenants.size());
-            return ResponseEntity.ok(response);
+            return ok(Map.of("data", tenants, "total", tenants.size()));
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    /**
-     * SUPER ADMIN: Xem chi tiết một tenant
-     */
-    @GetMapping("/tenants/{id}")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền xem chi tiết công ty")
+    /** SUPER_ADMIN: Xem chi tiết 1 tenant */
+    @GetMapping("/system/tenants/{id}")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> getTenant(@PathVariable String id) {
         try {
-            TenantDTO tenant = tenantService.getTenantById(id);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", tenant);
-            return ResponseEntity.ok(response);
+            return ok(Map.of("data", tenantService.getTenantById(id)));
         } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    /**
-     * SUPER ADMIN: Khóa tenant (Lock)
-     */
-    @PostMapping("/tenants/{tenantId}/lock")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền khóa công ty")
+    /** SUPER_ADMIN: Khóa tenant */
+    @PostMapping("/system/tenants/{tenantId}/lock")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> lockTenant(@PathVariable String tenantId) {
         try {
             TenantDTO tenant = tenantService.updateTenantStatus(tenantId, TenantStatus.LOCKED);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Công ty đã bị khóa");
-            response.put("data", tenant);
-            return ResponseEntity.ok(response);
-        } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+            return ok(Map.of("message", "Kho đã bị khóa", "data", tenant));
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    /**
-     * SUPER ADMIN: Mở khóa tenant (Unlock)
-     */
-    @PostMapping("/tenants/{tenantId}/unlock")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền mở khóa công ty")
+    /** SUPER_ADMIN: Mở khóa tenant */
+    @PostMapping("/system/tenants/{tenantId}/unlock")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> unlockTenant(@PathVariable String tenantId) {
         try {
             TenantDTO tenant = tenantService.updateTenantStatus(tenantId, TenantStatus.ACTIVE);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Công ty đã được mở khóa");
-            response.put("data", tenant);
-            return ResponseEntity.ok(response);
-        } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+            return ok(Map.of("message", "Kho đã được mở khóa", "data", tenant));
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    /**
-     * SUPER ADMIN: Gia hạn dịch vụ cho tenant
-     */
-    @PostMapping("/tenants/{tenantId}/renew")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền gia hạn dịch vụ")
-    public ResponseEntity<?> renewSubscription(
-            @PathVariable String tenantId,
+    /** SUPER_ADMIN: Gia hạn subscription */
+    @PostMapping("/system/tenants/{tenantId}/renew")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
+    public ResponseEntity<?> renewSubscription(@PathVariable String tenantId,
             @RequestParam(defaultValue = "30") int days) {
         try {
             TenantDTO tenant = tenantService.renewSubscription(tenantId, days);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Dịch vụ đã được gia hạn " + days + " ngày");
-            response.put("data", tenant);
-            return ResponseEntity.ok(response);
-        } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+            return ok(Map.of("message", "Gia hạn " + days + " ngày thành công", "data", tenant));
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    /**
-     * TENANT ADMIN: Xem thông tin công ty của mình
-     */
-    @GetMapping("/my-tenant")
-    public ResponseEntity<?> getMyTenant() {
-        try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String tenantId = extractTenantIdFromAuth(auth);
-            
-            if (tenantId == null) {
-                return createErrorResponse("Không tìm thấy thông tin công ty", HttpStatus.BAD_REQUEST);
-            }
-            
-            TenantDTO tenant = tenantService.getTenantByTenantId(tenantId);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", tenant);
-            return ResponseEntity.ok(response);
-        } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    // ==================== USER MANAGEMENT ====================
-
-    /**
-     * SUPER ADMIN: Xem danh sách tất cả người dùng
-     */
-    @GetMapping("/users")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền xem danh sách người dùng")
+    /** SUPER_ADMIN: Xem tất cả users trong hệ thống */
+    @GetMapping("/system/users")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> getAllUsers() {
         try {
-            List<User> users = userRepository.findAll();
-            List<Map<String, Object>> userList = users.stream().map(user -> {
-                Map<String, Object> userMap = new HashMap<>();
-                userMap.put("id", user.getId());
-                userMap.put("email", user.getEmail());
-                userMap.put("fullName", user.getFullName());
-                userMap.put("avatar", user.getAvatar());
-                userMap.put("roles", user.getRoles());
-                userMap.put("tenantId", user.getTenantId());
-                userMap.put("isActive", user.isActive());
-                userMap.put("provider", user.getProvider());
-                userMap.put("createdAt", user.getCreatedAt());
-                userMap.put("updatedAt", user.getUpdatedAt());
-                return userMap;
-            }).collect(Collectors.toList());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", userList);
-            response.put("total", userList.size());
-            return ResponseEntity.ok(response);
+            List<Map<String, Object>> users = userRepository.findAll().stream()
+                    .map(this::toUserMap).collect(Collectors.toList());
+            return ok(Map.of("data", users, "total", users.size()));
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    /**
-     * SUPER ADMIN: Vô hiệu hóa người dùng (Deactivate)
-     */
-    @PostMapping("/users/{userId}/deactivate")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền vô hiệu hóa người dùng")
+    /** SUPER_ADMIN: Vô hiệu hóa user */
+    @PostMapping("/system/users/{userId}/deactivate")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> deactivateUser(@PathVariable String userId) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
-            
             user.setActive(false);
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Đã vô hiệu hóa tài khoản: " + user.getEmail());
-            return ResponseEntity.ok(response);
+            return ok(Map.of("message", "Đã vô hiệu hóa: " + user.getEmail()));
         } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    /**
-     * SUPER ADMIN: Kích hoạt người dùng (Activate)
-     */
-    @PostMapping("/users/{userId}/activate")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền kích hoạt người dùng")
+    /** SUPER_ADMIN: Kích hoạt user */
+    @PostMapping("/system/users/{userId}/activate")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> activateUser(@PathVariable String userId) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
-            
             user.setActive(true);
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Đã kích hoạt tài khoản: " + user.getEmail());
-            return ResponseEntity.ok(response);
+            return ok(Map.of("message", "Đã kích hoạt: " + user.getEmail()));
         } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    /**
-     * SUPER ADMIN: Xóa người dùng
-     */
-    @DeleteMapping("/users/{userId}")
-    @RequireRole(value = UserRole.SUPER_ADMIN, message = "Chỉ Super Admin mới có quyền xóa người dùng")
+    /** SUPER_ADMIN: Xóa user khỏi hệ thống */
+    @DeleteMapping("/system/users/{userId}")
+    @RequireRole(value = UserRole.SUPER_ADMIN)
     public ResponseEntity<?> deleteUser(@PathVariable String userId) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
-            
-            // Không cho xóa admin user
-            if (user.getRoles().contains(UserRole.SUPER_ADMIN.getCode())) {
-                return createErrorResponse("Không thể xóa tài khoản Super Admin", HttpStatus.FORBIDDEN);
+            // Không cho xóa SUPER_ADMIN
+            boolean isSuperAdmin = user.getMemberships().isEmpty() &&
+                    userRepository.findByEmail("admin@optistock.com")
+                            .map(u -> u.getId().equals(userId)).orElse(false);
+            if (isSuperAdmin) {
+                return error("Không thể xóa tài khoản Super Admin", HttpStatus.FORBIDDEN);
             }
-
-            String email = user.getEmail();
             userRepository.deleteById(userId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Đã xóa tài khoản: " + email);
-            return ResponseEntity.ok(response);
+            return ok(Map.of("message", "Đã xóa tài khoản: " + user.getEmail()));
         } catch (AuthException e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return createErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    // ==================== UTILITY METHODS ====================
+    // =====================================================================
+    // MANAGER — prefix: /api/admin/tenant
+    // Yêu cầu header: X-Tenant-Id: <tenantId>
+    // =====================================================================
 
-    private String extractTenantIdFromAuth(Authentication auth) {
-        // Implementation for extracting tenantId from authentication context
-        // This will be implemented in JwtUtils integration
-        return null;
+    /** MANAGER: Xem thông tin kho của mình */
+    @GetMapping("/tenant/info")
+    public ResponseEntity<?> getMyTenant(@RequestHeader("X-Tenant-Id") String tenantId) {
+        try {
+            TenantDTO tenant = tenantService.getTenantByTenantId(tenantId);
+            return ok(Map.of("data", tenant));
+        } catch (AuthException e) {
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
-    private ResponseEntity<?> createErrorResponse(String message, HttpStatus status) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("success", false);
-        error.put("message", message);
-        return ResponseEntity.status(status).body(error);
+    /** MANAGER: Xem danh sách member trong kho */
+    @GetMapping("/tenant/users")
+    public ResponseEntity<?> getTenantUsers(@RequestHeader("X-Tenant-Id") String tenantId) {
+        try {
+            List<User> members = userRepository.findByMembershipsTenantId(tenantId);
+            List<Map<String, Object>> result = members.stream().map(u -> {
+                Map<String, Object> m = toUserMap(u);
+                // Thêm role trong tenant này
+                m.put("roleInTenant", u.getRoleInTenant(tenantId));
+                return m;
+            }).collect(Collectors.toList());
+            return ok(Map.of("data", result, "total", result.size()));
+        } catch (Exception e) {
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * MANAGER ONLY: Mời thành viên vào kho.
+     * - Nếu email đã tồn tại → thêm membership.
+     * - Nếu chưa tồn tại → tạo tài khoản mới + thêm membership.
+     */
+    @PostMapping("/tenant/users/invite")
+    @RequireRole(value = UserRole.MANAGER)
+    public ResponseEntity<?> inviteUser(@RequestHeader("X-Tenant-Id") String tenantId,
+            @RequestBody InviteUserRequest request) {
+        try {
+            // Validate role
+            String role = request.getRole();
+            if (role == null || role.isEmpty()) {
+                return error("Vui lòng chỉ định role cho thành viên", HttpStatus.BAD_REQUEST);
+            }
+            // Không cho invite SUPER_ADMIN
+            if (UserRole.SUPER_ADMIN.getCode().equals(role)) {
+                return error("Không thể gán role SUPER_ADMIN trong kho", HttpStatus.FORBIDDEN);
+            }
+
+            User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+
+            if (user == null) {
+                // Tạo tài khoản mới
+                if (request.getPassword() == null || request.getPassword().length() < 6) {
+                    return error("Mật khẩu phải có ít nhất 6 ký tự", HttpStatus.BAD_REQUEST);
+                }
+                user = new User(
+                        request.getEmail(),
+                        passwordEncoder.encode(request.getPassword()),
+                        request.getFullName() != null ? request.getFullName() : request.getEmail(),
+                        request.getPhoneNumber());
+                user.setCreatedAt(LocalDateTime.now());
+                user.setUpdatedAt(LocalDateTime.now());
+            }
+
+            // Thêm hoặc cập nhật membership
+            user.addOrUpdateMembership(tenantId, role);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            return ok(Map.of(
+                    "message", "Đã thêm " + request.getEmail() + " vào kho với role: " + role,
+                    "data", toUserMap(user)));
+        } catch (Exception e) {
+            return error(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /** MANAGER ONLY: Đổi role của member trong kho */
+    @PatchMapping("/tenant/users/{userId}/role")
+    @RequireRole(value = UserRole.MANAGER)
+    public ResponseEntity<?> assignRole(@RequestHeader("X-Tenant-Id") String tenantId,
+            @PathVariable String userId,
+            @RequestBody AssignRoleRequest request) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
+
+            if (!user.isMemberOf(tenantId)) {
+                return error("Người dùng này không phải thành viên của kho", HttpStatus.BAD_REQUEST);
+            }
+
+            String role = request.getRole();
+            if (UserRole.SUPER_ADMIN.getCode().equals(role)) {
+                return error("Không thể gán role SUPER_ADMIN", HttpStatus.FORBIDDEN);
+            }
+
+            user.addOrUpdateMembership(tenantId, role);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            return ok(Map.of("message", "Đã cập nhật role thành: " + role));
+        } catch (AuthException e) {
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /** MANAGER ONLY: Xóa member khỏi kho */
+    @DeleteMapping("/tenant/users/{userId}")
+    @RequireRole(value = UserRole.MANAGER)
+    public ResponseEntity<?> removeMember(@RequestHeader("X-Tenant-Id") String tenantId,
+            @PathVariable String userId) {
+        try {
+            // Không cho tự xóa mình
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String currentEmail = auth.getName();
+            User currentUser = userRepository.findByEmail(currentEmail).orElse(null);
+            if (currentUser != null && currentUser.getId().equals(userId)) {
+                return error("Không thể tự xóa mình khỏi kho", HttpStatus.BAD_REQUEST);
+            }
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
+
+            if (!user.isMemberOf(tenantId)) {
+                return error("Người dùng này không phải thành viên của kho", HttpStatus.BAD_REQUEST);
+            }
+
+            user.removeMembership(tenantId);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            return ok(Map.of("message", "Đã xóa " + user.getEmail() + " khỏi kho"));
+        } catch (AuthException e) {
+            return error(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // =====================================================================
+    // UTILITY
+    // =====================================================================
+
+    private Map<String, Object> toUserMap(User user) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", user.getId());
+        map.put("email", user.getEmail());
+        map.put("fullName", user.getFullName());
+        map.put("avatar", user.getAvatar());
+        // Enrich memberships with tenantName (companyName) for display
+        List<Map<String, Object>> enrichedMemberships = user.getMemberships().stream().map(m -> {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("tenantId", m.getTenantId());
+            entry.put("role", m.getRole());
+            entry.put("joinedAt", m.getJoinedAt());
+            String tenantName = tenantRepository.findByTenantId(m.getTenantId())
+                    .map(t -> t.getCompanyName())
+                    .orElse(m.getTenantId()); // fallback to slug if not found
+            entry.put("tenantName", tenantName);
+            return entry;
+        }).collect(Collectors.toList());
+        map.put("memberships", enrichedMemberships);
+        map.put("isActive", user.isActive());
+        map.put("provider", user.getProvider());
+        map.put("createdAt", user.getCreatedAt());
+        return map;
+    }
+
+    private ResponseEntity<?> ok(Map<String, ?> data) {
+        Map<String, Object> resp = new HashMap<>(data);
+        resp.put("success", true);
+        return ResponseEntity.ok(resp);
+    }
+
+    private ResponseEntity<?> error(String message, HttpStatus status) {
+        return ResponseEntity.status(status)
+                .body(Map.of("success", false, "message", message));
     }
 }
