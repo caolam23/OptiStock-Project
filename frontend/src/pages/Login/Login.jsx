@@ -34,10 +34,12 @@ const Login = () => {
       setTimeout(() => {
         const roles = response?.roles || []; 
         
+        // Only SUPER_ADMIN can access admin page
         if (roles.includes('SUPER_ADMIN')) {
           // Ép reload nhẹ để AuthContext kịp cập nhật data từ localStorage
           window.location.href = '/admin';
         } else {
+          // Tất cả user khác (TENANT_ADMIN, STAFF, ACCOUNTANT) đều vào dashboard
           window.location.href = '/dashboard';
         }
       }, 1500);
@@ -80,10 +82,12 @@ const Login = () => {
           setTimeout(() => {
               const roles = data.roles || [];
               
+              // Only SUPER_ADMIN can access admin page
               if (roles.includes('SUPER_ADMIN')) {
                   // Ép reload nhẹ để AuthContext kịp cập nhật data từ localStorage
                   window.location.href = '/admin';
               } else {
+                  // Tất cả user khác (TENANT_ADMIN, STAFF, ACCOUNTANT) đều vào dashboard
                   window.location.href = '/dashboard';
               }
           }, 1500);

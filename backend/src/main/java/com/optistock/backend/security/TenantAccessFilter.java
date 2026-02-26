@@ -29,7 +29,11 @@ public class TenantAccessFilter extends OncePerRequestFilter {
             "/api/auth/google-login",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
-            "/api/auth/verify-token"
+            "/api/auth/verify-token",
+            // ✅ FIX: Allow workspaces endpoint to list user's workspaces without tenant check
+            "/api/v1/workspaces/my-workspaces",
+            // ✅ FIX: Allow onboarding endpoints for new tenants
+            "/api/v1/onboarding"
     );
 
     @Override

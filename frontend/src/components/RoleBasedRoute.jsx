@@ -11,34 +11,24 @@ const RoleBasedRoute = ({ allowedRoles = [], element }) => {
   const { isAuthenticated, roles, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div style={{ textAlign: 'center', paddingTop: '50px' }}>Đang tải...</div>;
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
+  // SỬA LỖI TRẮNG MÀN HÌNH: Đảm bảo currentRoles luôn là mảng dù roles có bị null/undefined
+  const currentRoles = roles || []; 
+
   // Kiểm tra nếu user có role được phép
   const hasAllowedRole = allowedRoles.length === 0 || 
-    roles.some(role => allowedRoles.includes(role));
+    currentRoles.some(role => allowedRoles.includes(role));
 
   if (!hasAllowedRole) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        textAlign: 'center'
-      }}>
-        <div>
-          <h1>403 - Forbidden</h1>
-          <p>Bạn không có quyền truy cập trang này.</p>
-          <p>Yêu cầu role: {allowedRoles.join(', ')}</p>
-          <p>Role của bạn: {roles.join(', ')}</p>
-        </div>
-      </div>
-    );
+    // Chuyển hướng non-admin users về dashboard thay vì hiển thị lỗi
+    // Điều này ngăn chặn user truy cập trực tiếp vào /admin
+    return <Navigate to="/dashboard" replace />;
   }
 
   return element;

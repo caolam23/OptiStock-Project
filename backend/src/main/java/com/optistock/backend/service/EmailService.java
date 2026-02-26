@@ -179,4 +179,25 @@ public class EmailService {
             System.err.println("Failed to send password change email: " + e.getMessage());
         }
     }
+
+    /**
+     * Gửi email lời mời join Tenant
+     */
+    public void sendInvitationEmail(String toEmail, String subject, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            System.out.println("Invitation email sent to: " + toEmail);
+
+        } catch (MessagingException e) {
+            System.err.println("Failed to send invitation email: " + e.getMessage());
+            throw new RuntimeException("Failed to send invitation email", e);
+        }
+    }
 }

@@ -1,0 +1,157 @@
+.workspaceCard {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  padding: 32px;
+  transition: var(--transition-smooth);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.workspaceCard:hover {
+  border-color: rgba(249, 115, 22, 0.3);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-hover);
+}
+
+.workspaceCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-brand);
+  opacity: 0;
+  transition: var(--transition-smooth);
+}
+
+.workspaceCard:hover::before {
+  opacity: 1;
+}
+
+.cardHeader {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cardIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: #FFF7ED;
+  color: var(--primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  transition: var(--transition-smooth);
+}
+
+.workspaceCard:hover .cardIcon {
+  background: var(--gradient-brand);
+  color: white;
+}
+
+.cardTitleArea {
+  flex: 1;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 3px #D1FAE5;
+}
+
+.cardIndustry {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  align-self: flex-start;
+}
+
+.roleManager {
+  background: var(--badge-manager-bg);
+  color: var(--badge-manager-text);
+}
+
+.roleStaff {
+  background: var(--badge-staff-bg);
+  color: var(--badge-staff-text);
+}
+
+.roleSale {
+  background: var(--badge-sale-bg);
+  color: var(--badge-sale-text);
+}
+
+.cardFooter {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.cardMeta {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.enterLink {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: var(--transition-smooth);
+}
+
+.enterLink svg {
+  transition: var(--transition-smooth);
+}
+
+.workspaceCard:hover .enterLink {
+  color: var(--primary-hover);
+}
+
+.workspaceCard:hover .enterLink svg {
+  transform: translateX(4px);
+}

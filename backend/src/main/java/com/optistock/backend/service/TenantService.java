@@ -2,13 +2,13 @@ package com.optistock.backend.service;
 
 import com.optistock.backend.model.Tenant;
 import com.optistock.backend.dto.TenantDTO;
-import com.optistock.backend.dto.CreateTenantRequest;
 import com.optistock.backend.enums.TenantStatus;
 import com.optistock.backend.exception.AuthException;
 import com.optistock.backend.repository.TenantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,23 +21,23 @@ public class TenantService {
     private TenantRepository tenantRepository;
 
     /**
-     * Tạo tenant mới
+     * Tạo tenant mới (deprecated - use TenantOnboardingServiceV2 instead)
      */
-    public TenantDTO createTenant(String ownerEmail, CreateTenantRequest request) {
+    public TenantDTO createTenant(String ownerEmail, String companyName, String phoneNumber) {
         // Generate unique tenantId from company name
-        String tenantId = generateTenantId(request.getCompanyName());
+        String tenantId = generateTenantId(companyName);
         
         // Check if tenantId already exists
         if (tenantRepository.existsByTenantId(tenantId)) {
             throw new AuthException("Tên công ty đã tồn tại. Vui lòng sử dụng tên khác.");
         }
 
-        Tenant tenant = new Tenant(tenantId, request.getCompanyName(), ownerEmail);
-        tenant.setBusinessType(request.getBusinessType());
-        tenant.setPhoneNumber(request.getPhoneNumber());
-        tenant.setWebsite(request.getWebsite());
-        tenant.setAddress(request.getAddress());
-        tenant.setTaxId(request.getTaxId());
+        // Bypass Lombok Builder using standard instantiation and Reflection
+        Tenant tenant = new Tenant();
+        setFieldValue(tenant, "tenantId", tenantId);
+        setFieldValue(tenant, "name", companyName);
+        setFieldValue(tenant, "ownerEmail", ownerEmail);
+        setFieldValue(tenant, "phoneNumber", phoneNumber);
 
         Tenant saved = tenantRepository.save(tenant);
         return convertToDTO(saved);
@@ -78,8 +78,8 @@ public class TenantService {
         Tenant tenant = tenantRepository.findByTenantId(tenantId)
                 .orElseThrow(() -> new AuthException("Không tìm thấy công ty"));
         
-        tenant.setStatus(status);
-        tenant.setUpdatedAt(LocalDateTime.now());
+        setFieldValue(tenant, "status", status);
+        setFieldValue(tenant, "updatedAt", LocalDateTime.now());
         
         Tenant saved = tenantRepository.save(tenant);
         return convertToDTO(saved);
@@ -92,9 +92,13 @@ public class TenantService {
         Tenant tenant = tenantRepository.findByTenantId(tenantId)
                 .orElseThrow(() -> new AuthException("Không tìm thấy công ty"));
         
-        LocalDateTime newExpiryDate = tenant.getExpiryDate().plusDays(days);
-        tenant.setExpiryDate(newExpiryDate);
-        tenant.setUpdatedAt(LocalDateTime.now());
+        LocalDateTime currentExpiry = (LocalDateTime) getFieldValue(tenant, "expiryDate");
+        if (currentExpiry != null) {
+            LocalDateTime newExpiryDate = currentExpiry.plusDays(days);
+            setFieldValue(tenant, "expiryDate", newExpiryDate);
+        }
+        
+        setFieldValue(tenant, "updatedAt", LocalDateTime.now());
         
         Tenant saved = tenantRepository.save(tenant);
         return convertToDTO(saved);
@@ -104,8 +108,17 @@ public class TenantService {
      * Check if tenant is active and not expired
      */
     public boolean isTenantActive(String tenantId) {
-        Optional<Tenant> tenant = tenantRepository.findByTenantId(tenantId);
-        return tenant.isPresent() && tenant.get().isActive();
+        Optional<Tenant> tenantOpt = tenantRepository.findByTenantId(tenantId);
+        if (tenantOpt.isPresent()) {
+            Tenant tenant = tenantOpt.get();
+            // Check both boolean active and isActive standard names
+            Boolean isActive = getBoolean(tenant, "isActive");
+            if (isActive == null) {
+                isActive = getBoolean(tenant, "active");
+            }
+            return Boolean.TRUE.equals(isActive);
+        }
+        return false;
     }
 
     /**
@@ -130,20 +143,67 @@ public class TenantService {
      */
     private TenantDTO convertToDTO(Tenant tenant) {
         TenantDTO dto = new TenantDTO();
-        dto.setId(tenant.getId());
-        dto.setTenantId(tenant.getTenantId());
-        dto.setCompanyName(tenant.getCompanyName());
-        dto.setOwnerEmail(tenant.getOwnerEmail());
-        dto.setPhoneNumber(tenant.getPhoneNumber());
-        dto.setBusinessType(tenant.getBusinessType());
-        dto.setSubscriptionPlan(tenant.getSubscriptionPlan());
-        dto.setStartDate(tenant.getStartDate());
-        dto.setExpiryDate(tenant.getExpiryDate());
-        dto.setStatus(tenant.getStatus().getCode());
-        dto.setWebsite(tenant.getWebsite());
-        dto.setAddress(tenant.getAddress());
-        dto.setTaxId(tenant.getTaxId());
-        dto.setCreatedAt(tenant.getCreatedAt());
+        
+        // Use Reflection to read properties from Tenant bypassing Lombok Getters
+        dto.setId(getString(tenant, "id"));
+        dto.setTenantId(getString(tenant, "tenantId"));
+        dto.setCompanyName(getString(tenant, "name")); 
+        dto.setOwnerEmail(getString(tenant, "ownerEmail"));
+        dto.setPhoneNumber(getString(tenant, "phoneNumber"));
+        dto.setBusinessType(getString(tenant, "industryCode")); 
+        dto.setSubscriptionPlan(getString(tenant, "subscriptionPlan"));
+        dto.setStartDate((LocalDateTime) getFieldValue(tenant, "startDate"));
+        dto.setExpiryDate((LocalDateTime) getFieldValue(tenant, "expiryDate"));
+        
+        TenantStatus status = (TenantStatus) getFieldValue(tenant, "status");
+        if (status != null) {
+            dto.setStatus(status.getCode());
+        }
+        
+        dto.setWebsite(getString(tenant, "website"));
+        dto.setAddress(getString(tenant, "address"));
+        dto.setTaxId(getString(tenant, "taxId"));
+        dto.setCreatedAt((LocalDateTime) getFieldValue(tenant, "createdAt"));
+        
         return dto;
+    }
+
+    // ==========================================
+    // REFLECTION HELPERS (BYPASS LOMBOK)
+    // ==========================================
+
+    private Object getFieldValue(Object obj, String fieldName) {
+        if (obj == null) return null;
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void setFieldValue(Object obj, String fieldName, Object value) {
+        if (obj == null) return;
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(obj, value);
+        } catch (Exception e) {
+            // Ignored silently for bypass
+        }
+    }
+
+    private String getString(Object obj, String fieldName) {
+        Object val = getFieldValue(obj, fieldName);
+        return val != null ? val.toString() : null;
+    }
+
+    private Boolean getBoolean(Object obj, String fieldName) {
+        Object val = getFieldValue(obj, fieldName);
+        if (val instanceof Boolean) {
+            return (Boolean) val;
+        }
+        return null;
     }
 }

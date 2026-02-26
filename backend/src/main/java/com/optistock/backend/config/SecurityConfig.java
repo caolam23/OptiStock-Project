@@ -58,6 +58,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/google-login", 
                                 "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                 .requestMatchers("/api/auth/verify-token").permitAll()
+                .requestMatchers("/api/onboarding/**", "/api/v1/onboarding/**").authenticated()
+                .requestMatchers("/api/v1/workspaces/**").authenticated()
                 .requestMatchers("/api/admin/**").authenticated()
                 .anyRequest().authenticated()
             );

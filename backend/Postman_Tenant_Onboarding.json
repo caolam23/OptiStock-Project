@@ -1,0 +1,172 @@
+{
+  "info": {
+    "_postman_id": "tenant-onboarding-collection",
+    "name": "OptiStock - Tenant Onboarding",
+    "description": "API Collection for Tenant Onboarding Flow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Tenant",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"companyName\": \"Kho Gia Dụng Hùng Phát\",\n  \"businessType\": \"Retail\",\n  \"phoneNumber\": \"0123456789\",\n  \"website\": \"https://hungphat.com\",\n  \"address\": \"123 Đường Lê Lợi, TP HCM\",\n  \"taxId\": \"0123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/onboarding/step1",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onboarding", "step1"]
+        }
+      }
+    },
+    {
+      "name": "2. Setup Master Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"locations\": [\n    {\n      \"locationType\": \"WAREHOUSE\",\n      \"name\": \"Kho Gia Dụng\",\n      \"code\": \"WH001\",\n      \"address\": \"123 Đường Lê Lợi\"\n    },\n    {\n      \"locationType\": \"SHELF\",\n      \"name\": \"Kệ A\",\n      \"code\": \"SHELF_A\"\n    },\n    {\n      \"locationType\": \"SHELF\",\n      \"name\": \"Kệ B\",\n      \"code\": \"SHELF_B\"\n    }\n  ],\n  \"products\": [\n    {\n      \"productCode\": \"GD001\",\n      \"productName\": \"Chậu gốm 20cm\",\n      \"mainUnit\": \"Cái\",\n      \"category\": \"Chậu\",\n      \"description\": \"Chậu gốm kích thước 20cm\"\n    },\n    {\n      \"productCode\": \"GD002\",\n      \"productName\": \"Nước tưới cây 1L\",\n      \"mainUnit\": \"Lít\",\n      \"category\": \"Nước\",\n      \"description\": \"Nước tưới cây giúp cây tăng trưởng\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/onboarding/step2/{{tenant_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onboarding", "step2", "{{tenant_id}}"]
+        }
+      }
+    },
+    {
+      "name": "3. Setup Unit Conversion",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fromUnit\": \"Thùng\",\n  \"toUnit\": \"Chai\",\n  \"factor\": 24\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/onboarding/unit-conversion/{{tenant_id}}/{{product_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onboarding", "unit-conversion", "{{tenant_id}}", "{{product_id}}"]
+        }
+      }
+    },
+    {
+      "name": "4. Send Invitations",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"invitations\": [\n    {\n      \"email\": \"staff@example.com\",\n      \"role\": \"STAFF\"\n    },\n    {\n      \"email\": \"accountant@example.com\",\n      \"role\": \"ACCOUNTANT\"\n    },\n    {\n      \"email\": \"manager@example.com\",\n      \"role\": \"MANAGER\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/onboarding/step3/{{tenant_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onboarding", "step3", "{{tenant_id}}"]
+        }
+      }
+    },
+    {
+      "name": "5. Accept Invitation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"invitationCode\": \"{{invitation_code}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/onboarding/accept-invitation",
+          "host": ["{{base_url}}"],
+          "path": ["api", "onboarding", "accept-invitation"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "tenant_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitation_code",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

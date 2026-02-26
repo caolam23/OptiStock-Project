@@ -156,12 +156,8 @@ public class AuthController {
                 user.setUpdatedAt(java.time.LocalDateTime.now());
 
                 // Tạo tenant mặc định cho user mới (chỉ khi là Google login lần đầu)
-                CreateTenantRequest tenantRequest = new CreateTenantRequest();
-                tenantRequest.setCompanyName(name + "'s Warehouse");
-                tenantRequest.setBusinessType("General");
-
                 try {
-                    TenantDTO tenant = tenantService.createTenant(email, tenantRequest);
+                    TenantDTO tenant = tenantService.createTenant(email, name + "'s Warehouse", null);
                     user.setTenantId(tenant.getTenantId());
                 } catch (Exception e) {
                     System.err.println("Could not create default tenant: " + e.getMessage());

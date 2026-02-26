@@ -7,6 +7,7 @@ import ForgotPassword from '../pages/ForgotPassword/ForgotPassword'; // <-- Tran
 import Dashboard from '../pages/Dashboard/Dashboard'; // <-- Trang Dashboard
 import Product from '../pages/Product/Product'; // <-- (Optional) Trang Product nếu có
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'; // <-- Admin Dashboard
+import TenantOnboarding from '../pages/TenantOnboarding/TenantOnboarding'; // <-- Tenant Onboarding Wizard
 import RoleBasedRoute from '../components/RoleBasedRoute'; // <-- Role protection
 
 const AppRouter = () => {
@@ -37,11 +38,19 @@ const AppRouter = () => {
             element={<Product />} 
           />
         } />
+
+        {/* Tenant Onboarding - Create new warehouse/tenant */}
+        <Route path="/onboarding" element={
+          <RoleBasedRoute 
+            allowedRoles={[]} 
+            element={<TenantOnboarding />} 
+          />
+        } />
         
-        {/* Admin Dashboard - Chỉ Super Admin hoặc Tenant Admin */}
+        {/* Admin Dashboard - Chỉ Super Admin */}
         <Route path="/admin" element={
           <RoleBasedRoute 
-            allowedRoles={['SUPER_ADMIN', 'TENANT_ADMIN']} 
+            allowedRoles={['SUPER_ADMIN']} 
             element={<AdminDashboard />} 
           />
         } /> 
