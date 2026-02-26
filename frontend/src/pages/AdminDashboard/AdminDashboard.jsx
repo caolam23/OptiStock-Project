@@ -5,7 +5,7 @@ import ProfileInfo from "../../components/ProfileInfo";
 import styles from './AdminDashboard.module.css'; // Sửa import thành CSS Module
 
 const AdminDashboard = () => {
-  const { isSuperAdmin, tenantId } = useAuth();
+  const { isSuperAdmin } = useAuth();
   const [tenants, setTenants] = useState([]);
   const [users, setUsers] = useState([]);
   const [myTenant, setMyTenant] = useState(null);
@@ -207,19 +207,19 @@ const AdminDashboard = () => {
                         <td>{idx + 1}</td>
                         <td>
                           {user.avatar ? (
-                            <img 
-                              src={user.avatar} 
-                              alt={user.fullName} 
-                              className={styles.userAvatar} 
-                              style={{width: '40px', height: '40px', borderRadius: '50%'}}
+                            <img
+                              src={user.avatar}
+                              alt={user.fullName}
+                              className={styles.userAvatar}
+                              style={{ width: '40px', height: '40px', borderRadius: '50%' }}
                             />
                           ) : (
-                            <div 
+                            <div
                               className={styles.userAvatarPlaceholder}
                               style={{
-                                width: '40px', 
-                                height: '40px', 
-                                borderRadius: '50%', 
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
                                 backgroundColor: '#ddd',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -233,11 +233,33 @@ const AdminDashboard = () => {
                         <td>{user.fullName || 'N/A'}</td>
                         <td>{user.email}</td>
                         <td>
-                          <span style={{fontSize: '12px', backgroundColor: '#e3f2fd', padding: '4px 8px', borderRadius: '4px'}}>
-                            {user.roles?.join(', ') || 'N/A'}
-                          </span>
+                          {/* System role (SUPER_ADMIN) + Workspace roles */}
+                          {user.roles?.includes('SUPER_ADMIN') ? (
+                            <span style={{ fontSize: '12px', backgroundColor: '#fce4ec', padding: '4px 8px', borderRadius: '4px', color: '#c62828' }}>
+                              SUPER_ADMIN
+                            </span>
+                          ) : user.workspaces?.length > 0 ? (
+                            user.workspaces.map((ws, i) => (
+                              <span key={i} style={{ fontSize: '12px', backgroundColor: '#e8f5e9', padding: '4px 8px', borderRadius: '4px', marginRight: '4px', color: '#2e7d32' }}>
+                                {ws.role}
+                              </span>
+                            ))
+                          ) : (
+                            <span style={{ fontSize: '12px', color: '#999' }}>Chưa tham gia kho</span>
+                          )}
                         </td>
-                        <td>{user.tenantId || 'Không có'}</td>
+                        <td>
+                          {/* Tên kho (Workspace) mà user thuộc */}
+                          {user.workspaces?.length > 0 ? (
+                            user.workspaces.map((ws, i) => (
+                              <span key={i} style={{ fontSize: '12px', display: 'block' }}>
+                                {ws.tenantName}
+                              </span>
+                            ))
+                          ) : (
+                            <span style={{ color: '#999' }}>Không có</span>
+                          )}
+                        </td>
                         <td>
                           <span className={`${styles.statusBadge} ${user.isActive ? styles.active : styles.inactive}`}>
                             {user.isActive ? 'Hoạt động' : 'Vô hiệu'}
@@ -248,14 +270,14 @@ const AdminDashboard = () => {
                         </td>
                         <td className={styles.actions}>
                           {user.roles?.includes('SUPER_ADMIN') ? (
-                            <span style={{color: '#666', fontSize: '12px'}}>Super Admin</span>
+                            <span style={{ color: '#666', fontSize: '12px' }}>Super Admin</span>
                           ) : (
                             <>
                               {user.isActive ? (
                                 <button
                                   className={styles.btnWarning}
                                   onClick={() => deactivateUser(user.id)}
-                                  style={{marginRight: '5px', padding: '4px 8px', fontSize: '12px'}}
+                                  style={{ marginRight: '5px', padding: '4px 8px', fontSize: '12px' }}
                                 >
                                   Vô hiệu
                                 </button>
@@ -263,7 +285,7 @@ const AdminDashboard = () => {
                                 <button
                                   className={styles.btnSuccess}
                                   onClick={() => activateUser(user.id)}
-                                  style={{marginRight: '5px', padding: '4px 8px', fontSize: '12px'}}
+                                  style={{ marginRight: '5px', padding: '4px 8px', fontSize: '12px' }}
                                 >
                                   Kích hoạt
                                 </button>
@@ -271,7 +293,7 @@ const AdminDashboard = () => {
                               <button
                                 className={styles.btnDanger}
                                 onClick={() => deleteUser(user.id, user.email)}
-                                style={{padding: '4px 8px', fontSize: '12px'}}
+                                style={{ padding: '4px 8px', fontSize: '12px' }}
                               >
                                 Xóa
                               </button>

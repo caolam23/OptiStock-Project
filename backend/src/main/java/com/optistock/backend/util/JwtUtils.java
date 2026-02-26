@@ -36,18 +36,20 @@ public class JwtUtils {
     }
 
     /**
-     * Generate JWT token from User object (include roles and tenantId)
+     * Generate JWT token from User object
+     * Claims: userId, email (subject), systemRoles
+     * NOTE: tenantId/workspaceId KHÔNG lưu trong JWT
+     * Frontend gửi X-Workspace-Id header riêng khi cần workspace context
      */
     public String generateJwtToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", user.getRoles());
-        claims.put("tenantId", user.getTenantId());
+        claims.put("roles", user.getRoles()); // System roles: ["SUPER_ADMIN"] hoặc []
         claims.put("userId", user.getId());
         claims.put("fullName", user.getFullName());
-        
+
         return Jwts.builder()
-                .setClaims(claims) // Set custom claims
-                .setSubject(user.getEmail()) // Set subject (email) sau claims để đảm bảo không bị ghi đè
+                .setClaims(claims)
+                .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -59,14 +61,14 @@ public class JwtUtils {
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
+    /**
+     * @deprecated tenantId không còn lưu trong JWT.
+     *             Dùng X-Workspace-Id header thay thế.
+     *             Giữ lại method này để tránh compile error nếu có code cũ vẫn gọi.
+     */
+    @Deprecated
     public String getTenantIdFromJwtToken(String token) {
-        try {
-            Claims claims = Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
-                    .parseClaimsJws(token).getBody();
-            return claims.get("tenantId", String.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return null; // Always return null — no longer stored in JWT
     }
 
     public String getUserIdFromJwtToken(String token) {
@@ -84,14 +86,14 @@ public class JwtUtils {
         try {
             Claims claims = Jwts.parserBuilder().setSigningKey(getSigningKey()).build()
                     .parseClaimsJws(token).getBody();
-            
+
             Object rolesObj = claims.get("roles");
-            
+
             // Sửa lỗi ở đây: Cast về Collection<String> thay vì Collection<?>
             if (rolesObj instanceof Collection) {
                 return new HashSet<>((Collection<String>) rolesObj);
             }
-            
+
             return new HashSet<>();
         } catch (Exception e) {
             // Trả về Set rỗng nếu có lỗi parse token

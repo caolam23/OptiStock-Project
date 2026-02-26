@@ -5,6 +5,7 @@ import com.optistock.backend.enums.TenantStatus;
 import com.optistock.backend.enums.UserRole;
 import com.optistock.backend.exception.AuthException;
 import com.optistock.backend.model.User;
+import com.optistock.backend.repository.TenantRepository;
 import com.optistock.backend.repository.UserRepository;
 import com.optistock.backend.security.annotation.RequireRole;
 import com.optistock.backend.service.TenantService;
@@ -31,6 +32,9 @@ public class AdminController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TenantRepository tenantRepository;
 
     /**
      * SUPER ADMIN: Xem danh sách tất cả tenants
@@ -139,11 +143,11 @@ public class AdminController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String tenantId = extractTenantIdFromAuth(auth);
-            
+
             if (tenantId == null) {
                 return createErrorResponse("Không tìm thấy thông tin công ty", HttpStatus.BAD_REQUEST);
             }
-            
+
             TenantDTO tenant = tenantService.getTenantByTenantId(tenantId);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -172,8 +176,33 @@ public class AdminController {
                 userMap.put("email", user.getEmail());
                 userMap.put("fullName", user.getFullName());
                 userMap.put("avatar", user.getAvatar());
-                userMap.put("roles", user.getRoles());
-                userMap.put("tenantId", user.getTenantId());
+                userMap.put("roles", user.getRoles()); // System roles: ["SUPER_ADMIN"] hoặc []
+
+                // ✅ Lấy workspace info cho user từ TenantMember
+                // Query tất cả Tenant mà user này là member
+                List<Map<String, String>> workspaces = new java.util.ArrayList<>();
+                try {
+                    List<com.optistock.backend.model.Tenant> userTenants = tenantRepository
+                            .findAllByMembersUserId(user.getId());
+                    for (com.optistock.backend.model.Tenant t : userTenants) {
+                        if (t.getMembers() != null) {
+                            for (com.optistock.backend.model.TenantMember m : t.getMembers()) {
+                                if (user.getId().equals(m.getUserId())) {
+                                    Map<String, String> ws = new HashMap<>();
+                                    ws.put("tenantName", t.getName());
+                                    ws.put("tenantId", t.getTenantId());
+                                    ws.put("role", m.getRole());
+                                    workspaces.add(ws);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Bỏ qua lỗi query workspace — hiện "Không có" trên frontend
+                }
+                userMap.put("workspaces", workspaces);
+
                 userMap.put("isActive", user.isActive());
                 userMap.put("provider", user.getProvider());
                 userMap.put("createdAt", user.getCreatedAt());
@@ -200,7 +229,7 @@ public class AdminController {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
-            
+
             user.setActive(false);
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
@@ -225,7 +254,7 @@ public class AdminController {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
-            
+
             user.setActive(true);
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
@@ -250,7 +279,7 @@ public class AdminController {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new AuthException("Không tìm thấy người dùng"));
-            
+
             // Không cho xóa admin user
             if (user.getRoles().contains(UserRole.SUPER_ADMIN.getCode())) {
                 return createErrorResponse("Không thể xóa tài khoản Super Admin", HttpStatus.FORBIDDEN);

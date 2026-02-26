@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * TenantOnboardingServiceTest (Đã nâng cấp lên V2)
- * Test luồng Onboarding All-in-One: Tạo Tenant -> Cài đặt -> Location -> Phân quyền -> Gửi lời mời.
+ * Test luồng Onboarding All-in-One: Tạo Tenant -> Cài đặt -> Location -> Phân
+ * quyền -> Gửi lời mời.
  */
 @DataMongoTest
 @Import(TenantOnboardingServiceV2.class)
@@ -66,7 +67,7 @@ public class TenantOnboardingServiceTest {
         setFieldValue(testUser, "password", "hashed_password");
         setFieldValue(testUser, "roles", new HashSet<>());
         setFieldValue(testUser, "phoneNumber", "0123456789");
-        
+
         testUser = userRepository.save(testUser);
         testUserId = (String) getFieldValue(testUser, "id");
     }
@@ -100,29 +101,32 @@ public class TenantOnboardingServiceTest {
             setFieldValue(request, "invites", Collections.singletonList(invReq));
         }
 
-        // Act
-        TenantOnboardingResponseV2 response = tenantOnboardingService.onboardNewTenant(request, testUserId);
+        // Act: truyền EMAIL (service dùng findByEmail, không phải userId)
+        TenantOnboardingResponseV2 response = tenantOnboardingService.onboardNewTenant(request, "hungphat@example.com");
 
         // Assert: Response hợp lệ
         assertNotNull(response);
         assertEquals("SUCCESS", getFieldValue(response, "status"));
 
-        // Verify: Phân quyền TENANT_ADMIN thành công
+        // Verify LUỒNG MỚI: User KHÔNG còn TENANT_ADMIN system role
+        // và KHÔNG còn tenantId set trên User object
         User updatedUser = userRepository.findById(testUserId).orElse(null);
         assertNotNull(updatedUser);
         @SuppressWarnings("unchecked")
         Set<String> roles = (Set<String>) getFieldValue(updatedUser, "roles");
         assertNotNull(roles);
-        assertTrue(roles.contains("TENANT_ADMIN"));
-        assertNotNull(getFieldValue(updatedUser, "tenantId"));
+        // ✅ User KHÔNG có TENANT_ADMIN (đã xóa)
+        assertFalse(roles.contains("TENANT_ADMIN"), "TENANT_ADMIN không được gán vào User.roles nữa");
+        // ✅ tenantId KHÔNG set trên User (đã xóa field)
+        // Thay vào đó: user là OWNER trong Tenant.members
 
-        // Verify: Tenant đã được lưu xuống DB
+        // Verify: User là OWNER trong Tenant.members
         List<Tenant> tenants = tenantRepository.findAll();
         assertEquals(1, tenants.size());
         Tenant createdTenant = tenants.get(0);
         assertEquals("Kho Gia Dụng Hùng Phát V2", getFieldValue(createdTenant, "name"));
         assertEquals("fmcg", getFieldValue(createdTenant, "industryCode"));
-        
+
         // Verify: Settings đã được link
         assertNotNull(getFieldValue(createdTenant, "settings"));
 
@@ -149,9 +153,10 @@ public class TenantOnboardingServiceTest {
 
         // Act & Assert
         AuthException thrownException = assertThrows(AuthException.class, () -> {
-            tenantOnboardingService.onboardNewTenant(request, "invalid_user_id");
+            // Truyền email không tồn tại trong DB — service sẽ throw AuthException
+            tenantOnboardingService.onboardNewTenant(request, "notexist@test.com");
         });
-        
+
         assertNotNull(thrownException);
         assertTrue(thrownException.getMessage().contains("User không tồn tại"));
     }
@@ -169,7 +174,8 @@ public class TenantOnboardingServiceTest {
     }
 
     private Object getFieldValue(Object obj, String fieldName) {
-        if (obj == null) return null;
+        if (obj == null)
+            return null;
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
@@ -180,7 +186,8 @@ public class TenantOnboardingServiceTest {
     }
 
     private void setFieldValue(Object obj, String fieldName, Object value) {
-        if (obj == null) return;
+        if (obj == null)
+            return;
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);

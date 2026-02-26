@@ -4,7 +4,6 @@ import com.optistock.backend.dto.AuthRequest;
 import com.optistock.backend.dto.AuthResponse;
 import com.optistock.backend.dto.ForgotPasswordRequest;
 import com.optistock.backend.dto.ResetPasswordRequest;
-import com.optistock.backend.enums.UserRole;
 import com.optistock.backend.exception.AuthException;
 import com.optistock.backend.exception.UserNotFoundException;
 import com.optistock.backend.model.User;
@@ -59,8 +58,8 @@ public class AuthService {
         user.setFullName(request.getFullName() != null ? request.getFullName() : "User");
         user.setPhoneNumber(request.getPhoneNumber());
         user.setProvider(User.AuthProvider.LOCAL);
-        // ✅ FIX: Gán STAFF role thay vì ROLE_USER
-        user.getRoles().add(UserRole.STAFF.getCode());
+        // User mới đăng ký: roles rỗng [] — họ sẽ được phân role trong workspace sau
+        // khi onboarding/join
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
@@ -83,6 +82,12 @@ public class AuthService {
         // Tìm user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Email hoặc mật khẩu không đúng!"));
+
+        // ✅ Kiểm tra tài khoản có bị vô hiệu hóa không
+        if (!user.isActive()) {
+            throw new AuthException("ACCOUNT_DISABLED",
+                    "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.");
+        }
 
         // Kiểm tra mật khẩu
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -176,12 +181,12 @@ public class AuthService {
      */
     private AuthResponse buildAuthResponse(User user) {
         String token = jwtUtils.generateJwtToken(user);
-        
+
         // DEBUG: Log roles từ user
         System.out.println("🔍 DEBUG - User email: " + user.getEmail());
         System.out.println("🔍 DEBUG - User roles (raw): " + user.getRoles());
         System.out.println("🔍 DEBUG - User roles type: " + user.getRoles().getClass().getName());
-        
+
         AuthResponse response = new AuthResponse();
         response.setToken(token);
         response.setUserId(user.getId());
@@ -189,14 +194,15 @@ public class AuthService {
         response.setFullName(user.getFullName());
         response.setPhoneNumber(user.getPhoneNumber());
         response.setAvatar(user.getAvatar());
-        // ✅ FIX: Convert Set<String> to List<String> vì user.getRoles() trả về Set
+        // System roles từ User: ["SUPER_ADMIN"] hoặc [] (rỗng cho user thường)
         response.setRoles(new java.util.ArrayList<>(user.getRoles()));
-        response.setTenantId(user.getTenantId());
+        // tenantId không còn set ở đây — frontend fetch /my-workspaces để lấy danh sách
+        // kho
         response.setActive(user.isActive());
         response.setMessage("Đăng nhập thành công!");
-        
+
         System.out.println("✅ DEBUG - Response roles: " + response.getRoles());
-        
+
         return response;
     }
 }

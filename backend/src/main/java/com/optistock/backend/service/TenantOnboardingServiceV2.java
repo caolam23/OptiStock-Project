@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * TenantOnboardingService: Xử lý onboarding tenant với một API endpoint duy nhất
+ * TenantOnboardingService: Xử lý onboarding tenant với một API endpoint duy
+ * nhất
  * Áp dụng @Transactional để đảm bảo tính toàn vẹn dữ liệu
  */
 @Service
@@ -61,20 +62,13 @@ public class TenantOnboardingServiceV2 {
         log.info("Starting tenant onboarding for user: {} with industry: {}", currentUserEmailParam, reqIndustryCode);
 
         try {
-            // Lấy user hiện tại. NẾU KHÔNG CÓ => TỰ ĐỘNG TẠO MỚI ĐỂ TRÁNH LỖI CRASH
-            User currentUser = userRepository.findByEmail(currentUserEmailParam).orElseGet(() -> {
-                log.warn("Không tìm thấy user {} trong DB. Đang tự động tạo mới...", currentUserEmailParam);
-                User newUser = new User();
-                setFieldValue(newUser, "email", currentUserEmailParam);
-                setFieldValue(newUser, "createdAt", LocalDateTime.now());
-                setFieldValue(newUser, "updatedAt", LocalDateTime.now());
-                
-                Set<String> initialRoles = new HashSet<>();
-                initialRoles.add("ROLE_USER");
-                setFieldValue(newUser, "roles", initialRoles);
-                
-                return userRepository.save(newUser);
-            });
+            // Lấy user hiện tại — KHÔNG tự động tạo mới, throw exception nếu không tìm thấy
+            User currentUser = userRepository.findByEmail(currentUserEmailParam)
+                    .orElseThrow(() -> {
+                        log.error("User không tồn tại trong DB: {}", currentUserEmailParam);
+                        return new com.optistock.backend.exception.AuthException(
+                                "User không tồn tại: " + currentUserEmailParam);
+                    });
 
             // Step 1: Tạo Tenant (Bypass Builder)
             String reqTenantName = getString(request, "tenantName");
@@ -100,18 +94,17 @@ public class TenantOnboardingServiceV2 {
             // Add current user as OWNER member
             String dbUserEmail = getString(currentUser, "email");
             String dbUserId = getString(currentUser, "id"); // SỬ DỤNG dbUserId ĐỂ KHÔNG TRÙNG BIẾN
-            
+
             com.optistock.backend.model.TenantMember ownerMember = new com.optistock.backend.model.TenantMember(
                     dbUserId,
                     dbUserEmail,
                     "OWNER",
                     LocalDateTime.now(),
-                    LocalDateTime.now()
-            );
-            
+                    LocalDateTime.now());
+
             @SuppressWarnings("unchecked")
-            List<com.optistock.backend.model.TenantMember> members = 
-                    (List<com.optistock.backend.model.TenantMember>) getFieldValue(savedTenant, "members");
+            List<com.optistock.backend.model.TenantMember> members = (List<com.optistock.backend.model.TenantMember>) getFieldValue(
+                    savedTenant, "members");
             if (members == null) {
                 members = new ArrayList<>();
             }
@@ -123,7 +116,7 @@ public class TenantOnboardingServiceV2 {
             // Step 2: Tạo TenantSettings từ industry template
             IndustryTemplate template = IndustryTemplateConfig.getTemplate(reqIndustryCode);
             TenantSettings settings = buildTenantSettings(savedTenantId, request, template);
-            
+
             TenantSettings savedSettings = tenantSettingsRepository.save(settings);
             log.info("TenantSettings created with ID: {}", getString(savedSettings, "id"));
 
@@ -134,14 +127,15 @@ public class TenantOnboardingServiceV2 {
             // Step 3: Tạo Locations (từ request hoặc từ template)
             List<Location> locationsToCreate = new ArrayList<>();
             List<?> reqLocations = getList(request, "locations");
-            
+
             if (reqLocations != null && !reqLocations.isEmpty()) {
                 // Sử dụng locations từ request nếu có
                 for (Object locReq : reqLocations) {
                     Location loc = new Location();
                     setFieldValue(loc, "tenantId", savedTenantId);
                     setFieldValue(loc, "name", getString(locReq, "name"));
-                    setFieldValue(loc, "type", getString(locReq, "type") != null ? getString(locReq, "type") : getString(locReq, "locationType"));
+                    setFieldValue(loc, "type", getString(locReq, "type") != null ? getString(locReq, "type")
+                            : getString(locReq, "locationType"));
                     setFieldValue(loc, "capacity", getInteger(locReq, "capacity"));
                     setFieldValue(loc, "description", getString(locReq, "description"));
                     setFieldValue(loc, "isActive", true);
@@ -155,7 +149,8 @@ public class TenantOnboardingServiceV2 {
                         Location loc = new Location();
                         setFieldValue(loc, "tenantId", savedTenantId);
                         setFieldValue(loc, "name", getString(locReq, "name"));
-                        setFieldValue(loc, "type", getString(locReq, "type") != null ? getString(locReq, "type") : getString(locReq, "locationType"));
+                        setFieldValue(loc, "type", getString(locReq, "type") != null ? getString(locReq, "type")
+                                : getString(locReq, "locationType"));
                         setFieldValue(loc, "capacity", getInteger(locReq, "capacity"));
                         setFieldValue(loc, "description", getString(locReq, "description"));
                         setFieldValue(loc, "isActive", true);
@@ -167,18 +162,12 @@ public class TenantOnboardingServiceV2 {
             List<Location> savedLocations = locationRepository.saveAll(locationsToCreate);
             log.info("Created {} locations for tenant: {}", savedLocations.size(), savedTenantId);
 
-            // Step 4: Cập nhật User thành TENANT_ADMIN
-            setFieldValue(currentUser, "tenantId", savedTenantId);
-            @SuppressWarnings("unchecked")
-            Set<String> roles = (Set<String>) getFieldValue(currentUser, "roles");
-            if (roles == null) {
-                roles = new HashSet<>();
-            }
-            roles.add("TENANT_ADMIN");
-            setFieldValue(currentUser, "roles", roles);
+            // Step 4: User đã là OWNER trong TenantMember (dòng 104-121 bên trên)
+            // KHÔNG gán thêm system role hay tenantId vào User object
+            // Workspace role = OWNER được lưu trong Tenant.members, KHÔNG trong User.roles
             setFieldValue(currentUser, "updatedAt", LocalDateTime.now());
             userRepository.save(currentUser);
-            log.info("User {} granted TENANT_ADMIN role", dbUserId);
+            log.info("User {} đã là OWNER của workspace {} (via TenantMember)", dbUserId, savedTenantId);
 
             // Step 5: Gửi lời mời cho members
             List<Invitation> sentInvitations = new ArrayList<>();
@@ -190,9 +179,14 @@ public class TenantOnboardingServiceV2 {
             // Build response
             return buildSuccessResponse(savedTenant, savedLocations, sentInvitations);
 
+        } catch (com.optistock.backend.exception.AuthException e) {
+            // Re-throw AuthException trực tiếp (không wrap) để test và caller bắt được đúng
+            // message
+            log.error("AuthException during tenant onboarding: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error("Error during tenant onboarding", e);
-            throw new AuthException("Lỗi khởi tạo Tenant: " + e.getMessage());
+            throw new com.optistock.backend.exception.AuthException("Lỗi khởi tạo Tenant: " + e.getMessage());
         }
     }
 
@@ -231,7 +225,8 @@ public class TenantOnboardingServiceV2 {
                 setFieldValue(settings, "enableBom", getBoolean(defaultSettings, "enableBom"));
                 setFieldValue(settings, "enableLotTracking", getBoolean(defaultSettings, "enableLotTracking"));
                 setFieldValue(settings, "requireBatchExpiry", getBoolean(defaultSettings, "requireBatchExpiry"));
-                setFieldValue(settings, "enableInventoryTracking", getBoolean(defaultSettings, "enableInventoryTracking"));
+                setFieldValue(settings, "enableInventoryTracking",
+                        getBoolean(defaultSettings, "enableInventoryTracking"));
                 setFieldValue(settings, "enableStockAdjustment", getBoolean(defaultSettings, "enableStockAdjustment"));
                 setFieldValue(settings, "reorderThreshold", getInteger(defaultSettings, "reorderThreshold"));
             }
@@ -353,11 +348,14 @@ public class TenantOnboardingServiceV2 {
     // ============ HELPER METHODS ============
 
     private String generateTenantCode(String tenantName) {
-        if (tenantName == null) return "tenant-" + System.currentTimeMillis();
-        return tenantName.toLowerCase()
-                .replaceAll("\\s+", "-")
-                .replaceAll("[^a-z0-9-]", "")
-                .substring(0, Math.min(30, tenantName.length()));
+        if (tenantName == null)
+            return "tenant-" + System.currentTimeMillis();
+        String processed = tenantName.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "") // xóa ký tự đặc biệt trước
+                .trim()
+                .replaceAll("\\s+", "-"); // thay space bằng dash
+        // Substring theo độ dài của chuỗi ĐÃ XỬ LÝ (không phải tenantName gốc)
+        return processed.substring(0, Math.min(30, processed.length()));
     }
 
     private String generateInvitationCode() {
@@ -375,30 +373,32 @@ public class TenantOnboardingServiceV2 {
     private void sendInvitationEmail(String toEmail, String tenantName, String role, String code) {
         String link = "http://localhost:5173/accept-invitation?code=" + code;
         String subject = "📧 Lời mời tham gia " + tenantName + " trên OptiStock";
-        
-        String htmlContent = String.format("""
-            <!DOCTYPE html>
-            <html>
-            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
-                <div style="max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    <div style="background-color: #F59E0B; padding: 20px; text-align: center;">
-                        <h1 style="color: #ffffff; margin: 0;">OptiStock</h1>
-                    </div>
-                    <div style="padding: 30px; color: #333333;">
-                        <h2>Bạn được mời tham gia</h2>
-                        <p>Lời mời tham gia <strong>%s</strong> với vai trò <strong>%s</strong></p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="%s" style="display: inline-block; background-color: #F59E0B; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                                CHẤP NHẬN LỜI MỜI
-                            </a>
-                        </div>
-                        <p>Hoặc code: <strong>%s</strong></p>
-                        <p style="color: #666; font-size: 12px;">Link hết hạn sau 7 ngày</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """, tenantName, role, link, code);
+
+        String htmlContent = String.format(
+                """
+                        <!DOCTYPE html>
+                        <html>
+                        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                            <div style="max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                                <div style="background-color: #F59E0B; padding: 20px; text-align: center;">
+                                    <h1 style="color: #ffffff; margin: 0;">OptiStock</h1>
+                                </div>
+                                <div style="padding: 30px; color: #333333;">
+                                    <h2>Bạn được mời tham gia</h2>
+                                    <p>Lời mời tham gia <strong>%s</strong> với vai trò <strong>%s</strong></p>
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="%s" style="display: inline-block; background-color: #F59E0B; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                            CHẤP NHẬN LỜI MỜI
+                                        </a>
+                                    </div>
+                                    <p>Hoặc code: <strong>%s</strong></p>
+                                    <p style="color: #666; font-size: 12px;">Link hết hạn sau 7 ngày</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                        """,
+                tenantName, role, link, code);
 
         emailService.sendInvitationEmail(toEmail, subject, htmlContent);
     }
@@ -406,7 +406,8 @@ public class TenantOnboardingServiceV2 {
     // ============ REFLECTION HELPERS (BYPASS LOMBOK) ============
 
     private Object getFieldValue(Object obj, String fieldName) {
-        if (obj == null) return null;
+        if (obj == null)
+            return null;
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
@@ -417,7 +418,8 @@ public class TenantOnboardingServiceV2 {
     }
 
     private void setFieldValue(Object obj, String fieldName, Object value) {
-        if (obj == null) return;
+        if (obj == null)
+            return;
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
@@ -434,18 +436,26 @@ public class TenantOnboardingServiceV2 {
 
     private Integer getInteger(Object obj, String fieldName) {
         Object val = getFieldValue(obj, fieldName);
-        if (val instanceof Integer) return (Integer) val;
-        if (val instanceof Number) return ((Number) val).intValue();
+        if (val instanceof Integer)
+            return (Integer) val;
+        if (val instanceof Number)
+            return ((Number) val).intValue();
         if (val instanceof String) {
-            try { return Integer.parseInt((String) val); } catch (Exception e) { return 0; }
+            try {
+                return Integer.parseInt((String) val);
+            } catch (Exception e) {
+                return 0;
+            }
         }
         return 0;
     }
 
     private Boolean getBoolean(Object obj, String fieldName) {
         Object val = getFieldValue(obj, fieldName);
-        if (val instanceof Boolean) return (Boolean) val;
-        if (val instanceof String) return Boolean.parseBoolean((String) val);
+        if (val instanceof Boolean)
+            return (Boolean) val;
+        if (val instanceof String)
+            return Boolean.parseBoolean((String) val);
         return false;
     }
 

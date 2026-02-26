@@ -38,7 +38,7 @@ public class AdminDataInitializer implements CommandLineRunner {
             adminUser.setProvider(User.AuthProvider.LOCAL);
             adminUser.setActive(true);
             adminUser.getRoles().add(UserRole.SUPER_ADMIN.getCode());
-            adminUser.setTenantId(null); // Super Admin không thuộc tenant nào
+            // SUPER_ADMIN không thuộc workspace nào — quản lý ở system level
             adminUser.setAvatar(null);
             adminUser.setCreatedAt(LocalDateTime.now());
             adminUser.setUpdatedAt(LocalDateTime.now());

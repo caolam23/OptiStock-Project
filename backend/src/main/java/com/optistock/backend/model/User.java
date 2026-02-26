@@ -14,18 +14,20 @@ public class User {
     private String password;
     private String fullName;
     private String phoneNumber;
-    
+
+    // System-level roles: chỉ dùng ["SUPER_ADMIN"] hoặc [] (rỗng cho user thường)
+    // Workspace roles (OWNER, MANAGER, ACCOUNTANT, SALE, STAFF) lưu trong
+    // TenantMember.role
     private Set<String> roles = new HashSet<>();
-    private String tenantId; // Multi-tenancy support
     private AuthProvider provider;
     private String googleId;
     private String avatar;
     private boolean isActive = true;
-    
+
     // OTP fields cho reset password
     private String resetOtp;
     private LocalDateTime resetOtpExpiry;
-    
+
     // Timestamp
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -38,7 +40,8 @@ public class User {
     public User() {
     }
 
-    public User(String id, String email, String password, String fullName, String phoneNumber, Set<String> roles, AuthProvider provider, String googleId, String avatar) {
+    public User(String id, String email, String password, String fullName, String phoneNumber, Set<String> roles,
+            AuthProvider provider, String googleId, String avatar) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -156,14 +159,6 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public String getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(String tenantId) {
-        this.tenantId = tenantId;
     }
 
     public boolean isActive() {

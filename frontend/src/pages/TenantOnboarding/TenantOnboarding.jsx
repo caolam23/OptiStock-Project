@@ -204,9 +204,9 @@ const Step3 = ({ masterData }) => {
         <div className={styles.formGroup} style={{ marginBottom: 0 }}>
           <label className={styles.formLabel}>Engine OptiStock sẽ bật:</label>
           <ul style={{ paddingLeft: '20px', color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
-             {masterData.configs.map((config, idx) => (
-                 <li key={idx} style={{ marginBottom: '6px' }}>{config}</li>
-             ))}
+            {masterData.configs.map((config, idx) => (
+              <li key={idx} style={{ marginBottom: '6px' }}>{config}</li>
+            ))}
           </ul>
         </div>
       </div>
@@ -219,7 +219,7 @@ const Step4 = ({ formData, setFormData }) => {
   const addInviteRow = () => {
     setFormData({
       ...formData,
-      invites: [...formData.invites, { email: '', role: 'WAREHOUSE_STAFF' }],
+      invites: [...formData.invites, { email: '', role: 'STAFF' }],
     });
   };
 
@@ -247,7 +247,7 @@ const Step4 = ({ formData, setFormData }) => {
 
       <div className={styles.formGroup}>
         <label className={styles.formLabel}>Danh sách Email mời (Tenant Invite)</label>
-        
+
         {formData.invites.map((invite, idx) => (
           <div key={idx} className={styles.inviteRow}>
             <input
@@ -264,10 +264,10 @@ const Step4 = ({ formData, setFormData }) => {
               onChange={(e) => updateInvite(idx, 'role', e.target.value)}
               style={{ flex: 1, background: 'white' }}
             >
-              <option value="WAREHOUSE_STAFF">Nhân viên kho</option>
+              <option value="STAFF">Nhân viên kho</option>
               <option value="ACCOUNTANT">Kế toán</option>
-              <option value="MANAGER">Quản lý</option>
-              <option value="WAREHOUSE_MANAGER">Quản lý kho</option>
+              <option value="SALE">Nhân viên bán hàng</option>
+              <option value="MANAGER">Quản lý kho</option>
             </select>
             <button className={styles.deleteBtn} onClick={() => deleteInvite(idx)} title="Xóa">
               <DeleteOutlined />
@@ -290,35 +290,35 @@ const Step4 = ({ formData, setFormData }) => {
 const TenantOnboarding = () => {
   const navigate = useNavigate();
   const mainContentRef = useRef(null);
-  
+
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     tenantName: '',
     industryCode: '',
     masterData: null,
-    invites: [{ email: '', role: 'WAREHOUSE_STAFF' }],
+    invites: [{ email: '', role: 'STAFF' }],
   });
 
   const handleNext = () => {
     if (step === 1 && (!formData.tenantName.trim() || formData.tenantName.trim().length < 3)) {
-       message.error("Vui lòng nhập tên kho hợp lệ (ít nhất 3 ký tự).");
-       return;
+      message.error("Vui lòng nhập tên kho hợp lệ (ít nhất 3 ký tự).");
+      return;
     }
     if (step === 2 && !formData.industryCode) {
-       message.error("Vui lòng chọn một ngành hàng.");
-       return;
+      message.error("Vui lòng chọn một ngành hàng.");
+      return;
     }
     if (step < 4) {
-        setStep(step + 1);
-        if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
+      setStep(step + 1);
+      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
     }
   };
 
   const handlePrev = () => {
     if (step > 1) {
-        setStep(step - 1);
-        if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
+      setStep(step - 1);
+      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
     }
   };
 
@@ -336,8 +336,8 @@ const TenantOnboarding = () => {
       const payload = {
         tenantName: formData.tenantName,
         industryCode: formData.industryCode,
-        locations: [], 
-        tenantSettings: {}, 
+        locations: [],
+        tenantSettings: {},
         invites: validInvites,
       };
 
@@ -360,15 +360,15 @@ const TenantOnboarding = () => {
   }
 
   const stepsInfo = [
-      { id: 1, title: 'Khởi tạo Kho', desc: 'Định danh phân vùng dữ liệu' },
-      { id: 2, title: 'Ngành hàng', desc: 'Mô hình kinh doanh' },
-      { id: 3, title: 'Dữ liệu nền', desc: 'Sơ đồ & Hàng hóa cơ bản' },
-      { id: 4, title: 'Đội ngũ', desc: 'Phân quyền truy cập' }
+    { id: 1, title: 'Khởi tạo Kho', desc: 'Định danh phân vùng dữ liệu' },
+    { id: 2, title: 'Ngành hàng', desc: 'Mô hình kinh doanh' },
+    { id: 3, title: 'Dữ liệu nền', desc: 'Sơ đồ & Hàng hóa cơ bản' },
+    { id: 4, title: 'Đội ngũ', desc: 'Phân quyền truy cập' }
   ];
 
   return (
     <div className={styles.layoutWrapper}>
-      
+
       {/* Sidebar (Cột Trái) */}
       <div className={styles.sidebar}>
         <div>
@@ -379,17 +379,17 @@ const TenantOnboarding = () => {
 
           <div className={styles.stepperVertical}>
             {stepsInfo.map(item => (
-                <div key={item.id} className={`${styles.stepItem} ${step >= item.id ? styles.stepItemActive : ''}`}>
-                    <div className={styles.stepCircle}>{step > item.id ? '✓' : item.id}</div>
-                    <div className={styles.stepText}>
-                        <h4>{item.title}</h4>
-                        <p>{item.desc}</p>
-                    </div>
+              <div key={item.id} className={`${styles.stepItem} ${step >= item.id ? styles.stepItemActive : ''}`}>
+                <div className={styles.stepCircle}>{step > item.id ? '✓' : item.id}</div>
+                <div className={styles.stepText}>
+                  <h4>{item.title}</h4>
+                  <p>{item.desc}</p>
                 </div>
+              </div>
             ))}
           </div>
         </div>
-        
+
         <div className={styles.sidebarFooter}>
           © 2026 OptiStock Platform
         </div>
@@ -405,23 +405,23 @@ const TenantOnboarding = () => {
         </div>
 
         <div className={styles.actionFooter}>
-          <button 
-            className={`${styles.btn} ${styles.btnGhost}`} 
-            onClick={handlePrev} 
+          <button
+            className={`${styles.btn} ${styles.btnGhost}`}
+            onClick={handlePrev}
             style={{ visibility: step === 1 ? 'hidden' : 'visible' }}
           >
             ← Quay lại
           </button>
-          
-          <button 
-            className={`${styles.btn} ${styles.btnPrimary}`} 
+
+          <button
+            className={`${styles.btn} ${styles.btnPrimary}`}
             onClick={step === 4 ? handleSubmit : handleNext}
             style={step === 4 ? { background: '#10B981', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' } : {}}
           >
             {step === 4 ? (
-                <>Khởi tạo Tenant & Vào Dashboard <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginLeft: 4}}><path d="M5 12h14M12 5l7 7-7 7"/></svg></>
+              <>Khởi tạo Tenant & Vào Dashboard <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: 4 }}><path d="M5 12h14M12 5l7 7-7 7" /></svg></>
             ) : (
-                `Tiếp tục bước ${step + 1} →`
+              `Tiếp tục bước ${step + 1} →`
             )}
           </button>
         </div>

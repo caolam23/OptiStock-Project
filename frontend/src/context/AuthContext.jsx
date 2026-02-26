@@ -1,102 +1,155 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import authApi from '../api/authApi';
 
-// Tạo Context
+// ============================================================
+// AuthContext: Foundation cho toàn bộ hệ thống phân quyền
+//
+// LUỒNG:
+//   1. Đăng nhập → nhận JWT (chứa systemRoles: [] hoặc ['SUPER_ADMIN'])
+//   2. Gọi /api/v1/workspaces/my-workspaces → lấy danh sách kho user tham gia
+//   3. User chọn 1 kho → switchWorkspace({ id, name, role, industryCode })
+//   4. Mọi API call workspace cần gắn header: "X-Workspace-Id: currentWorkspace.id"
+//
+// CÁCH TEAMMATES DÙNG:
+//   const { getWorkspaceRole, isWorkspaceOwner, isWorkspaceManager } = useAuth();
+//   if (isWorkspaceManager()) { ... hiện nút chỉnh sửa ... }
+// ============================================================
+
 const AuthContext = createContext();
 
-// Provider component
 export const AuthProvider = ({ children }) => {
+  // --- System State (từ JWT) ---
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState(null);
-  const [tenantId, setTenantId] = useState(null);
-  const [roles, setRoles] = useState([]);
+  const [systemRoles, setSystemRoles] = useState([]); // ['SUPER_ADMIN'] hoặc []
   const [avatar, setAvatar] = useState(null);
   const [isActive, setIsActive] = useState(true);
 
-  // Khởi tạo - kiểm tra token từ localStorage
+  // --- Workspace State (sau khi user chọn kho) ---
+  // currentWorkspace: { id, name, role, industryCode, lastAccessed }
+  // role: 'OWNER' | 'MANAGER' | 'ACCOUNTANT' | 'SALE' | 'STAFF'
+  const [currentWorkspace, setCurrentWorkspaceState] = useState(null);
+
+  // Khởi tạo từ localStorage
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
-    
+    const savedWorkspace = localStorage.getItem('currentWorkspace');
+
     if (savedToken && savedUser) {
       const userObj = JSON.parse(savedUser);
       setToken(savedToken);
       setUser(userObj);
       setUserId(userObj.userId);
-      setTenantId(userObj.tenantId);
-      setRoles(userObj.roles || []);
+      setSystemRoles(userObj.roles || []);
       setAvatar(userObj.avatar);
       setIsActive(userObj.isActive !== false);
       setIsAuthenticated(true);
     }
-    
+
+    if (savedWorkspace) {
+      try {
+        setCurrentWorkspaceState(JSON.parse(savedWorkspace));
+      } catch (_) { }
+    }
+
     setLoading(false);
   }, []);
 
-  // Utility function - Check if user has specific role
-  const hasRole = (roleName) => {
-    return roles && roles.includes(roleName);
+  // ============================================================
+  // WORKSPACE SWITCHER
+  // Gọi sau khi user chọn kho từ danh sách (WorkspaceSelector component)
+  // ============================================================
+  const switchWorkspace = useCallback((workspace) => {
+    // workspace: { id, name, role, industryCode, lastAccessed } hoặc null để deselect
+    setCurrentWorkspaceState(workspace);
+    if (workspace) {
+      localStorage.setItem('currentWorkspace', JSON.stringify(workspace));
+    } else {
+      localStorage.removeItem('currentWorkspace');
+    }
+  }, []);
+
+  // ============================================================
+  // WORKSPACE ROLE HELPERS — Teammates dùng để check quyền
+  // ============================================================
+
+  /** Lấy role của user trong workspace hiện tại: 'OWNER'|'MANAGER'|'ACCOUNTANT'|'SALE'|'STAFF'|null */
+  const getWorkspaceRole = () => currentWorkspace?.role ?? null;
+
+  /** Chủ kho — toàn quyền */
+  const isWorkspaceOwner = () => getWorkspaceRole() === 'OWNER';
+
+  /** Quản lý kho hoặc cao hơn (OWNER hoặc MANAGER) */
+  const isWorkspaceManager = () => ['OWNER', 'MANAGER'].includes(getWorkspaceRole());
+
+  /** Kế toán hoặc cao hơn */
+  const isWorkspaceAccountant = () => ['OWNER', 'MANAGER', 'ACCOUNTANT'].includes(getWorkspaceRole());
+
+  /** Nhân viên sale hoặc cao hơn */
+  const isWorkspaceSale = () => ['OWNER', 'MANAGER', 'SALE'].includes(getWorkspaceRole());
+
+  /** Bất kỳ ai trong workspace đều có quyền nhân viên kho */
+  const isWorkspaceStaff = () => currentWorkspace !== null;
+
+  /** Kiểm tra role cụ thể: hasWorkspaceRole('MANAGER') */
+  const hasWorkspaceRole = (role) => getWorkspaceRole() === role;
+
+  // ============================================================
+  // SYSTEM ROLE HELPERS
+  // ============================================================
+
+  /** Super Admin của nền tảng OptiStock */
+  const isSuperAdmin = () => systemRoles.includes('SUPER_ADMIN');
+
+  /** Alias backward compat */
+  const hasRole = (roleName) => systemRoles.includes(roleName);
+
+  /** @deprecated Dùng isWorkspaceOwner() */
+  const isTenantAdmin = () => isWorkspaceOwner();
+
+  /** @deprecated Dùng isWorkspaceAccountant() */
+  const isAccountant = () => isWorkspaceAccountant();
+
+  /** @deprecated Dùng isWorkspaceStaff() */
+  const isStaff = () => isWorkspaceStaff();
+
+  // ============================================================
+  // AUTH ACTIONS
+  // ============================================================
+
+  const _saveSession = (data) => {
+    const {
+      token: newToken, userId: newUserId, email, fullName,
+      roles: newRoles, avatar: newAvatar, isActive: newIsActive
+    } = data;
+
+    const userDataToSave = {
+      userId: newUserId, email, fullName,
+      roles: newRoles, avatar: newAvatar, isActive: newIsActive
+    };
+
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(userDataToSave));
+
+    setToken(newToken);
+    setUserId(newUserId);
+    setUser(userDataToSave);
+    setSystemRoles(newRoles || []);
+    setAvatar(newAvatar);
+    setIsActive(newIsActive !== false);
+    setIsAuthenticated(true);
   };
 
-  const isSuperAdmin = () => {
-    return hasRole('SUPER_ADMIN');
-  };
-
-  const isTenantAdmin = () => {
-    return hasRole('TENANT_ADMIN');
-  };
-
-  const isStaff = () => {
-    return hasRole('STAFF');
-  };
-
-  const isAccountant = () => {
-    return hasRole('ACCOUNTANT');
-  };
-
-  // Login
   const login = async (email, password) => {
     setLoading(true);
     try {
       const response = await authApi.login({ email, password });
-      const { 
-        token: newToken, 
-        userId: newUserId,
-        email: userEmail, 
-        fullName, 
-        roles: newRoles,
-        tenantId: newTenantId,
-        avatar: newAvatar,
-        isActive: newIsActive
-      } = response.data;
-
-      // Lưu token và user vào localStorage
-      localStorage.setItem('token', newToken);
-      const userDataToSave = {
-        userId: newUserId,
-        email: userEmail, 
-        fullName, 
-        roles: newRoles,
-        tenantId: newTenantId,
-        avatar: newAvatar,
-        isActive: newIsActive
-      };
-      localStorage.setItem('user', JSON.stringify(userDataToSave));
-
-      // Cập nhật state - ✅ FIX: Lưu đầy đủ user object
-      setToken(newToken);
-      setUserId(newUserId);
-      setUser(userDataToSave);
-      setRoles(newRoles || []);
-      setTenantId(newTenantId);
-      setAvatar(newAvatar);
-      setIsActive(newIsActive !== false);
-      setIsAuthenticated(true);
+      _saveSession(response.data);
       setLoading(false);
-
       return response.data;
     } catch (error) {
       setIsAuthenticated(false);
@@ -105,46 +158,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register
   const register = async (formData) => {
     setLoading(true);
     try {
       const response = await authApi.register(formData);
-      const { 
-        token: newToken, 
-        userId: newUserId,
-        email, 
-        fullName, 
-        roles: newRoles,
-        tenantId: newTenantId,
-        avatar: newAvatar,
-        isActive: newIsActive
-      } = response.data;
-
-      // Lưu token và user
-      localStorage.setItem('token', newToken);
-      const userDataToSave = {
-        userId: newUserId,
-        email, 
-        fullName, 
-        roles: newRoles,
-        tenantId: newTenantId,
-        avatar: newAvatar,
-        isActive: newIsActive
-      };
-      localStorage.setItem('user', JSON.stringify(userDataToSave));
-
-      // Cập nhật state - ✅ FIX: Lưu đầy đủ user object
-      setToken(newToken);
-      setUserId(newUserId);
-      setUser(userDataToSave);
-      setRoles(newRoles || []);
-      setTenantId(newTenantId);
-      setAvatar(newAvatar);
-      setIsActive(newIsActive !== false);
-      setIsAuthenticated(true);
+      _saveSession(response.data);
       setLoading(false);
-
       return response.data;
     } catch (error) {
       setIsAuthenticated(false);
@@ -153,46 +172,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Google Login
-  const googleLogin = async (token) => {
+  const googleLogin = async (googleToken) => {
     setLoading(true);
     try {
-      const response = await authApi.googleLogin({ token });
-      const { 
-        token: newToken, 
-        userId: newUserId,
-        email, 
-        fullName, 
-        roles: newRoles,
-        tenantId: newTenantId,
-        avatar: newAvatar,
-        isActive: newIsActive
-      } = response.data;
-
-      // Lưu token và user
-      localStorage.setItem('token', newToken);
-      const userDataToSave = {
-        userId: newUserId,
-        email, 
-        fullName, 
-        roles: newRoles,
-        tenantId: newTenantId,
-        avatar: newAvatar,
-        isActive: newIsActive
-      };
-      localStorage.setItem('user', JSON.stringify(userDataToSave));
-
-      // Cập nhật state - ✅ FIX: Lưu đầy đủ user object
-      setToken(newToken);
-      setUserId(newUserId);
-      setUser(userDataToSave);
-      setRoles(newRoles || []);
-      setTenantId(newTenantId);
-      setAvatar(newAvatar);
-      setIsActive(newIsActive !== false);
-      setIsAuthenticated(true);
+      const response = await authApi.googleLogin({ token: googleToken });
+      _saveSession(response.data);
       setLoading(false);
-
       return response.data;
     } catch (error) {
       setIsAuthenticated(false);
@@ -201,61 +186,59 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('currentWorkspace');
     setToken(null);
     setUserId(null);
     setUser(null);
-    setRoles([]);
-    setTenantId(null);
+    setSystemRoles([]);
     setAvatar(null);
     setIsActive(true);
     setIsAuthenticated(false);
+    setCurrentWorkspaceState(null);
   };
 
-  // Forgot Password - Gửi OTP
-  const sendOtp = async (email) => {
-    return await authApi.forgotPassword(email);
-  };
+  const sendOtp = async (email) => authApi.forgotPassword(email);
 
-  // Reset Password - Xác nhận OTP & Đổi mật khẩu
-  const resetPassword = async (email, otp, newPassword, confirmPassword) => {
-    return await authApi.resetPassword({
-      email,
-      otp,
-      newPassword,
-      confirmPassword,
-    });
-  };
+  const resetPassword = async (email, otp, newPassword, confirmPassword) =>
+    authApi.resetPassword({ email, otp, newPassword, confirmPassword });
+
+  // ============================================================
+  // CONTEXT VALUE
+  // ============================================================
 
   const value = {
-    // State
-    user,
-    token,
-    loading,
-    isAuthenticated,
-    userId,
-    tenantId,
-    roles,
-    avatar,
-    isActive,
-    
-    // Methods
-    login,
-    register,
-    googleLogin,
-    logout,
-    sendOtp,
-    resetPassword,
-    
-    // Utility methods
+    // System state
+    user, token, loading, isAuthenticated, userId, avatar, isActive,
+
+    // System roles
+    systemRoles,
+    roles: systemRoles,   // backward compat alias
     hasRole,
     isSuperAdmin,
+
+    // Workspace state
+    currentWorkspace,
+    switchWorkspace,
+
+    // ✅ Workspace role helpers — TEAMMATES DÙNG CÁC HÀM NÀY
+    getWorkspaceRole,       // → 'OWNER'|'MANAGER'|'ACCOUNTANT'|'SALE'|'STAFF'|null
+    isWorkspaceOwner,       // Chủ kho
+    isWorkspaceManager,     // OWNER hoặc MANAGER
+    isWorkspaceAccountant,  // OWNER, MANAGER hoặc ACCOUNTANT
+    isWorkspaceSale,        // OWNER, MANAGER hoặc SALE
+    isWorkspaceStaff,       // Bất kỳ ai trong workspace
+    hasWorkspaceRole,       // check role cụ thể: hasWorkspaceRole('ACCOUNTANT')
+
+    // Auth actions
+    login, register, googleLogin, logout, sendOtp, resetPassword,
+
+    // @deprecated — giữ để không break code cũ
     isTenantAdmin,
-    isStaff,
     isAccountant,
+    isStaff,
   };
 
   return (
@@ -265,11 +248,8 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Hook để sử dụng AuthContext
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };

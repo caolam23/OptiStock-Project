@@ -1,11 +1,9 @@
 package com.optistock.backend.controller;
 
 import com.optistock.backend.dto.*;
-import com.optistock.backend.enums.UserRole;
 import com.optistock.backend.model.User;
 import com.optistock.backend.repository.UserRepository;
 import com.optistock.backend.service.AuthService;
-import com.optistock.backend.service.TenantService;
 import com.optistock.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -25,9 +23,6 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private TenantService tenantService;
 
     @Autowired
     private PasswordEncoder encoder;
@@ -55,10 +50,10 @@ public class AuthController {
     public ResponseEntity<?> loginUser(@RequestBody AuthRequest request) {
         try {
             AuthResponse response = authService.loginUser(request.getEmail(), request.getPassword());
-            
+
             // DEBUG: Log response trước khi gửi về
             System.out.println("✅ AuthController - Login response roles: " + response.getRoles());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
@@ -154,19 +149,20 @@ public class AuthController {
                 user.setActive(true);
                 user.setCreatedAt(java.time.LocalDateTime.now());
                 user.setUpdatedAt(java.time.LocalDateTime.now());
-
-                // Tạo tenant mặc định cho user mới (chỉ khi là Google login lần đầu)
-                try {
-                    TenantDTO tenant = tenantService.createTenant(email, name + "'s Warehouse", null);
-                    user.setTenantId(tenant.getTenantId());
-                } catch (Exception e) {
-                    System.err.println("Could not create default tenant: " + e.getMessage());
-                }
-                user.getRoles().add(UserRole.STAFF.getCode());
-
+                // User mới: roles rỗng [] — họ sẽ được phân role trong workspace sau khi
+                // onboarding
+                // KHÔNG tự động tạo tenant — dùng onboarding flow /api/v1/onboarding/tenant
                 user = userRepository.save(user);
             } else {
                 user = existingUser.get();
+
+                // ✅ Kiểm tra tài khoản có bị vô hiệu hóa không
+                if (!user.isActive()) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("success", false,
+                                    "message", "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
+                }
+
                 // Update Google info if not set
                 if (user.getGoogleId() == null) {
                     user.setGoogleId(googleId);
@@ -178,7 +174,8 @@ public class AuthController {
 
             // 4. Tạo JWT Token và trả về response
             AuthResponse authResponse = buildAuthResponse(user);
-            authResponse.setMessage(isNewUser ? "Đăng ký thành công! Kho hàng mặc định đã được tạo." : "Đăng nhập thành công!");
+            authResponse
+                    .setMessage(isNewUser ? "Đăng ký thành công! Hãy tạo kho hàng của bạn." : "Đăng nhập thành công!");
 
             return ResponseEntity.ok(authResponse);
 
@@ -199,7 +196,6 @@ public class AuthController {
             if (isValid) {
                 String email = jwtUtils.getUserNameFromJwtToken(jwt);
                 String userId = jwtUtils.getUserIdFromJwtToken(jwt);
-                String tenantId = jwtUtils.getTenantIdFromJwtToken(jwt);
                 Set<String> roles = jwtUtils.getRolesFromJwtToken(jwt);
 
                 Map<String, Object> result = new HashMap<>();
@@ -207,7 +203,8 @@ public class AuthController {
                 result.put("message", "Token is valid");
                 result.put("email", email);
                 result.put("userId", userId);
-                result.put("tenantId", tenantId);
+                // tenantId không còn trong JWT — frontend dùng /my-workspaces để lấy danh sách
+                // kho
                 result.put("roles", roles);
                 return ResponseEntity.ok(result);
             } else {
@@ -231,9 +228,10 @@ public class AuthController {
         response.setFullName(user.getFullName());
         response.setPhoneNumber(user.getPhoneNumber());
         response.setAvatar(user.getAvatar());
-        // ✅ FIX: Convert Set<String> to List<String> vì user.getRoles() trả về Set
+        // System roles từ User: ["SUPER_ADMIN"] hoặc [] (rỗng cho user thường)
         response.setRoles(new java.util.ArrayList<>(user.getRoles()));
-        response.setTenantId(user.getTenantId());
+        // tenantId không còn set ở đây — frontend fetch /my-workspaces để lấy danh sách
+        // kho
         response.setActive(user.isActive());
 
         return response;
