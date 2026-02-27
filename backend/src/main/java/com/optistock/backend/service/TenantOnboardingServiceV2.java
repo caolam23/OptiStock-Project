@@ -258,6 +258,12 @@ public class TenantOnboardingServiceV2 {
                 continue;
             }
 
+            // Validate role: chỉ cho phép mời MANAGER, ACCOUNTANT, SALE, STAFF
+            if (!com.optistock.backend.enums.WorkspaceRole.isValidInvitableRole(role)) {
+                log.warn("Invalid or non-invitable role skipped: {} for email: {}", role, email);
+                continue;
+            }
+
             // Check user đã tồn tại trong tenant
             Optional<User> existingUser = userRepository.findByEmail(email);
             if (existingUser.isPresent() && tenantId.equals(getString(existingUser.get(), "tenantId"))) {

@@ -70,9 +70,9 @@ export const sortWorkspacesByAccess = (workspaces) => {
  */
 export const getTimeAgo = (timestamp) => {
   if (!timestamp) return 'Chưa truy cập';
-  
+
   const now = new Date();
-  const then = new Date(timestamp);
+  const then = new Date(timestamp); // Backend now outputs "2026-02-27T15:01:00+07:00" — parsed correctly
   const diffMs = now - then;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);

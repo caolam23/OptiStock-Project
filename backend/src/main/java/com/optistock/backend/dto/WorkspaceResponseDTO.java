@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
  * Matches frontend requirement structure
  */
 public class WorkspaceResponseDTO {
-    private String id;              // Tenant MongoDB ID
-    private String name;            // Workspace/Tenant name
-    private String industryCode;    // Industry code (fmcg, electronics, etc.)
-    private String role;            // User's role in this workspace (OWNER, MANAGER, STAFF)
-    
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    private String id; // Tenant MongoDB ID
+    private String name; // Workspace/Tenant name
+    private String industryCode; // Industry code (fmcg, electronics, etc.)
+    private String role; // User's role in this workspace (OWNER, MANAGER, STAFF)
+
+    @JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'+07:00'")
     private LocalDateTime lastAccessed; // Last time user accessed this workspace
 
     // Constructors

@@ -1,0 +1,250 @@
+/* ============================================================
+   AcceptInvitation.module.css — Trang chấp nhận lời mời
+   Brand màu: Amber #F59E0B (OptiStock)
+   ============================================================ */
+
+/* ── PAGE WRAPPER ─────────────────────────────────────────── */
+.page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2027 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* ── CARD ─────────────────────────────────────────────────── */
+.card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 40px 36px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    text-align: center;
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── LOGO ─────────────────────────────────────────────────── */
+.logoRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.logoIcon {
+    font-size: 24px;
+}
+
+.logoText {
+    font-size: 20px;
+    font-weight: 800;
+    color: #F59E0B;
+    letter-spacing: -0.5px;
+}
+
+/* ── ICONS ────────────────────────────────────────────────── */
+.iconWrap {
+    width: 72px;
+    height: 72px;
+    background: #FFF8E7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+}
+
+.iconLarge {
+    font-size: 32px;
+    line-height: 1;
+}
+
+/* ── TYPOGRAPHY ───────────────────────────────────────────── */
+.title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #6B7280;
+    line-height: 1.6;
+    margin: 0 0 24px;
+}
+
+.roleDesc {
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0 0 24px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #FAFAFA;
+    border: 1px solid #F3F4F6;
+}
+
+/* ── INFO BOX ─────────────────────────────────────────────── */
+.infoBox {
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.infoRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid #F3F4F6;
+    gap: 8px;
+}
+
+.infoRow:last-child {
+    border-bottom: none;
+}
+
+.infoLabel {
+    font-size: 13px;
+    color: #6B7280;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.infoValue {
+    font-size: 13px;
+    color: #111827;
+    font-weight: 500;
+    text-align: right;
+    word-break: break-all;
+}
+
+/* ── ROLE BADGE ───────────────────────────────────────────── */
+.roleBadge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* ── ACTION BUTTONS ───────────────────────────────────────── */
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 4px 0 20px;
+}
+
+.loginNote {
+    font-size: 13px;
+    color: #6B7280;
+    margin: 0;
+}
+
+.btnPrimary {
+    width: 100%;
+    padding: 13px 24px;
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.btnPrimary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+}
+
+.btnPrimary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btnDanger {
+    width: 100%;
+    padding: 11px 24px;
+    background: transparent;
+    color: #DC2626;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1.5px solid #DC2626;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnDanger:hover:not(:disabled) {
+    background: #FEF2F2;
+}
+
+.btnDanger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btnSecondary {
+    padding: 11px 28px;
+    background: #F3F4F6;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btnSecondary:hover {
+    background: #E5E7EB;
+}
+
+/* ── FOOT NOTE ────────────────────────────────────────────── */
+.footNote {
+    font-size: 11px;
+    color: #9CA3AF;
+    margin: 0;
+}
+
+/* ── LOADING ──────────────────────────────────────────────── */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #F3F4F6;
+    border-top: 3px solid #F59E0B;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loadingText {
+    color: #6B7280;
+    font-size: 14px;
+}

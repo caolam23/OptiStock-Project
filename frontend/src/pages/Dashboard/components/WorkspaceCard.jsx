@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { 
-  CrownOutlined, 
-  SafetyCertificateOutlined, 
-  UserOutlined, 
+import {
+  CrownOutlined,
+  SafetyCertificateOutlined,
+  UserOutlined,
   ShopOutlined,
   ShoppingCartOutlined,
   SkinOutlined,
@@ -55,9 +55,9 @@ const WorkspaceCard = ({ workspace, onSelectWorkspace }) => {
   // Format last accessed time
   const getTimeAgo = (timestamp) => {
     if (!timestamp) return 'Chưa truy cập';
-    
+
     const now = new Date();
-    const then = new Date(timestamp);
+    const then = new Date(timestamp); // Backend xuất "2026-02-27T15:01:00+07:00" — parse đúng
     const diffMs = now - then;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
