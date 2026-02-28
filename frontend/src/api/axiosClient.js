@@ -15,6 +15,18 @@ axiosClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // ✅ Tự động gắn X-Workspace-Id header
+        // Teammates KHÔNG cần gắn thủ công — axiosClient lo hết
+        try {
+            const workspace = JSON.parse(localStorage.getItem('currentWorkspace'));
+            if (workspace?.id) {
+                config.headers['X-Workspace-Id'] = workspace.id;
+            }
+        } catch (_) {
+            // Không có workspace context → bỏ qua (API auth/onboarding không cần)
+        }
+
         return config;
     },
     function (error) {
@@ -28,10 +40,8 @@ axiosClient.interceptors.response.use(
         return response;
     },
     function (error) {
-        // Nếu token hết hạn (401), redirect về login
-        if (error.response?.status === 401) {
+        if (error.response && error.response.status === 401) {
             localStorage.removeItem('token');
-            localStorage.removeItem('user');
             window.location.href = '/login';
         }
         return Promise.reject(error);

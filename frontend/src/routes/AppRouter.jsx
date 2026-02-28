@@ -1,68 +1,183 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// Import đầy đủ các trang
+// Public pages
 import Login from '../pages/Login/Login';
-import Register from '../pages/Register/Register'; // <-- Trang Đăng ký
-import ForgotPassword from '../pages/ForgotPassword/ForgotPassword'; // <-- Trang Quên pass
-import Dashboard from '../pages/Dashboard/Dashboard'; // <-- Trang Dashboard
-import Product from '../pages/Product/Product'; // <-- (Optional) Trang Product nếu có
-import AdminDashboard from '../pages/AdminDashboard/AdminDashboard'; // <-- Admin Dashboard
-import TenantOnboarding from '../pages/TenantOnboarding/TenantOnboarding'; // <-- Tenant Onboarding Wizard
-import AcceptInvitation from '../pages/AcceptInvitation/AcceptInvitation'; // <-- Accept Invitation
-import RoleBasedRoute from '../components/RoleBasedRoute'; // <-- Role protection
+import Register from '../pages/Register/Register';
+import ForgotPassword from '../pages/ForgotPassword/ForgotPassword';
+import AcceptInvitation from '../pages/AcceptInvitation/AcceptInvitation';
 
+// Workspace Selector (chọn kho)
+import Dashboard from '../pages/Dashboard/Dashboard';
+
+// Admin
+import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
+
+// Onboarding
+import TenantOnboarding from '../pages/TenantOnboarding/TenantOnboarding';
+
+// Layout & Guards
+import RoleBasedRoute from '../components/RoleBasedRoute';
+import WorkspaceLayout from '../layouts/WorkspaceLayout';
+import WorkspaceRoleRoute from '../components/WorkspaceRoleRoute';
+
+// ── Workspace Pages ────────────────────────────────────
+import Overview from '../pages/workspace/Overview';
+import Products from '../pages/workspace/Products';
+import Locations from '../pages/workspace/Locations';
+import Inventory from '../pages/workspace/Inventory';
+import Stocktake from '../pages/workspace/Stocktake';
+import Finance from '../pages/workspace/Finance';
+import Reports from '../pages/workspace/Reports';
+import Orders from '../pages/workspace/Orders';
+import Customers from '../pages/workspace/Customers';
+import StaffTasks from '../pages/workspace/StaffTasks';
+import Team from '../pages/workspace/Team';
+import AuditLog from '../pages/workspace/AuditLog';
+import Settings from '../pages/workspace/Settings';
+
+/**
+ * AppRouter: Cấu trúc routing toàn ứng dụng.
+ *
+ * /login, /register, /forgot-password   → Public
+ * /dashboard                            → Workspace Selector (chọn kho)
+ * /workspace/:workspaceId/*             → Trong kho (WorkspaceLayout)
+ * /admin                                → Super Admin
+ *
+ * CÁCH TEAMMATES THÊM TRANG MỚI:
+ * 1. Tạo file trong pages/workspace/TenMoi.jsx
+ * 2. Import ở đây
+ * 3. Thêm <Route> bên trong <Route element={<WorkspaceLayout />}>
+ * 4. Wrap bằng <WorkspaceRoleRoute> nếu cần giới hạn role
+ * 5. Thêm entry vào MENU_CONFIG trong Sidebar.jsx
+ */
 const AppRouter = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* --- PUBLIC ROUTES (Ai cũng vào được) --- */}
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* ── PUBLIC ROUTES ──────────────────────── */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
-        {/* Mặc định vào trang chủ sẽ chuyển hướng về Login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+                {/* ── WORKSPACE SELECTOR ─────────────────── */}
+                <Route path="/dashboard" element={
+                    <RoleBasedRoute allowedRoles={[]} element={<Dashboard />} />
+                } />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        {/* Public: ai cũng xem được thông tin invite trước khi đăng nhập */}
-        <Route path="/accept-invitation" element={<AcceptInvitation />} />
+                {/* ── ONBOARDING ─────────────────────────── */}
+                <Route path="/onboarding" element={
+                    <RoleBasedRoute allowedRoles={[]} element={<TenantOnboarding />} />
+                } />
 
-        {/* --- PROTECTED ROUTES (Sau này sẽ chặn nếu chưa login) --- */}
+                {/* ── WORKSPACE (trong kho) ──────────────── */}
+                <Route path="/workspace/:workspaceId" element={<WorkspaceLayout />}>
+                    {/* Default redirect → overview */}
+                    <Route index element={<Navigate to="overview" replace />} />
 
-        {/* User Dashboard - Bất kỳ user authenticated nào cũng có thể xem */}
-        <Route path="/dashboard" element={
-          <RoleBasedRoute
-            allowedRoles={[]}
-            element={<Dashboard />}
-          />
-        } />
-        <Route path="/products" element={
-          <RoleBasedRoute
-            allowedRoles={[]}
-            element={<Product />}
-          />
-        } />
+                    {/* Tổng quan — tất cả role trừ STAFF */}
+                    <Route path="overview" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'ACCOUNTANT', 'SALE']}>
+                            <Overview />
+                        </WorkspaceRoleRoute>
+                    } />
 
-        {/* Tenant Onboarding - Create new warehouse/tenant */}
-        <Route path="/onboarding" element={
-          <RoleBasedRoute
-            allowedRoles={[]}
-            element={<TenantOnboarding />}
-          />
-        } />
+                    {/* Sản phẩm — OWNER, MANAGER */}
+                    <Route path="products" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER']}>
+                            <Products />
+                        </WorkspaceRoleRoute>
+                    } />
 
-        {/* Admin Dashboard - Chỉ Super Admin */}
-        <Route path="/admin" element={
-          <RoleBasedRoute
-            allowedRoles={['SUPER_ADMIN']}
-            element={<AdminDashboard />}
-          />
-        } />
+                    {/* Kho & Vị trí — OWNER, MANAGER */}
+                    <Route path="locations" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER']}>
+                            <Locations />
+                        </WorkspaceRoleRoute>
+                    } />
 
-        {/* Route bắt lỗi: Nhập link bậy bạ sẽ quay về login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
+                    {/* Nhập / Xuất — OWNER, MANAGER, STAFF */}
+                    <Route path="inventory" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'STAFF']}>
+                            <Inventory />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Kiểm kê — OWNER, MANAGER, STAFF */}
+                    <Route path="stocktake" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'STAFF']}>
+                            <Stocktake />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Tài chính — OWNER, ACCOUNTANT */}
+                    <Route path="finance" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'ACCOUNTANT']}>
+                            <Finance />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Báo cáo — OWNER, MANAGER, ACCOUNTANT */}
+                    <Route path="reports" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'ACCOUNTANT']}>
+                            <Reports />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Đơn hàng — OWNER, SALE */}
+                    <Route path="orders" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'SALE']}>
+                            <Orders />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Khách hàng — OWNER, SALE, ACCOUNTANT */}
+                    <Route path="customers" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'SALE', 'ACCOUNTANT']}>
+                            <Customers />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Phiếu công việc Staff — chỉ STAFF */}
+                    <Route path="staff-tasks" element={
+                        <WorkspaceRoleRoute allowedRoles={['STAFF']}>
+                            <StaffTasks />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Nhân sự — chỉ OWNER */}
+                    <Route path="team" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER']}>
+                            <Team />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Audit Log — chỉ OWNER */}
+                    <Route path="audit-log" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER']}>
+                            <AuditLog />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Cài đặt — chỉ OWNER */}
+                    <Route path="settings" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER']}>
+                            <Settings />
+                        </WorkspaceRoleRoute>
+                    } />
+                </Route>
+
+                {/* ── SUPER ADMIN ────────────────────────── */}
+                <Route path="/admin" element={
+                    <RoleBasedRoute allowedRoles={['SUPER_ADMIN']} element={<AdminDashboard />} />
+                } />
+
+                {/* ── CATCH ALL ──────────────────────────── */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+        </BrowserRouter>
+    );
 };
 
 export default AppRouter;
