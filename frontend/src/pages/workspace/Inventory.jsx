@@ -15,7 +15,7 @@ const Inventory = () => {
                 <div className={styles.placeholderIcon}><SwapOutlined /></div>
                 <h3 className={styles.placeholderTitle}>Luồng nhập / xuất kho</h3>
                 <p className={styles.placeholderText}>Trang quản lý phiếu nhập/xuất với luồng duyệt, quét barcode và cập nhật tồn kho realtime sẽ được xây dựng tại đây.</p>
-                <span className={styles.placeholderBadge}><SwapOutlined /> Đang phát triển — MANAGER & STAFF roles</span>
+                <span className={styles.placeholderBadge}><SwapOutlined /> Đang phát triển — MANAGER role</span>
             </div>
         </div>
     );

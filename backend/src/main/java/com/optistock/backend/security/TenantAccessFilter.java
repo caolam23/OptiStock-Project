@@ -59,10 +59,18 @@ public class TenantAccessFilter extends OncePerRequestFilter {
 
         if (workspaceId != null && !workspaceId.isBlank()) {
             try {
-                // Kiểm tra workspace có đang ACTIVE không (không bị khóa, chưa hết hạn
-                // subscription)
+                // Kiểm tra workspace có đang ACTIVE không
                 boolean isWorkspaceActive = tenantRepository.findById(workspaceId)
-                        .map(tenant -> tenant.isActive())
+                        .map(tenant -> {
+                            // Defensive: nếu status null (lỗi deserialize enum) → check expiryDate thôi
+                            com.optistock.backend.enums.TenantStatus status = tenant.getStatus();
+                            if (status == null) {
+                                // Fallback: chỉ check expiryDate
+                                return tenant.getExpiryDate() == null ||
+                                        tenant.getExpiryDate().isAfter(java.time.LocalDateTime.now());
+                            }
+                            return tenant.isActive();
+                        })
                         .orElse(false);
 
                 if (!isWorkspaceActive) {

@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/invitations/**").authenticated()
                         .requestMatchers("/api/onboarding/**", "/api/v1/onboarding/**").authenticated()
                         .requestMatchers("/api/v1/workspaces/**").authenticated()
+                        .requestMatchers("/api/v1/staff/**").authenticated()
                         .requestMatchers("/api/admin/**").authenticated()
                         .anyRequest().authenticated());
 

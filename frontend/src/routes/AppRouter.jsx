@@ -31,6 +31,8 @@ import Reports from '../pages/workspace/Reports';
 import Orders from '../pages/workspace/Orders';
 import Customers from '../pages/workspace/Customers';
 import StaffTasks from '../pages/workspace/StaffTasks';
+import ProcessVoucher from '../pages/workspace/ProcessVoucher';
+import StocktakeDetail from '../pages/workspace/StocktakeDetail';
 import Team from '../pages/workspace/Team';
 import AuditLog from '../pages/workspace/AuditLog';
 import Settings from '../pages/workspace/Settings';
@@ -143,6 +145,20 @@ const AppRouter = () => {
                     <Route path="staff-tasks" element={
                         <WorkspaceRoleRoute allowedRoles={['STAFF']}>
                             <StaffTasks />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Xử lý phiếu nhập/xuất — STAFF */}
+                    <Route path="voucher/:voucherId" element={
+                        <WorkspaceRoleRoute allowedRoles={['STAFF', 'MANAGER', 'OWNER']}>
+                            <ProcessVoucher />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Chi tiết phiếu kiểm kê — STAFF */}
+                    <Route path="stocktake/:ticketId" element={
+                        <WorkspaceRoleRoute allowedRoles={['STAFF', 'MANAGER', 'OWNER']}>
+                            <StocktakeDetail />
                         </WorkspaceRoleRoute>
                     } />
 

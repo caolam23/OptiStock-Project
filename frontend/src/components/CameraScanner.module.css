@@ -1,0 +1,196 @@
+/* CameraScanner.module.css */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.70);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal {
+    background: #ffffff;
+    border-radius: 20px;
+    width: min(480px, 95vw);
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.30);
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #F8FAFC;
+    flex-shrink: 0;
+}
+
+.title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #64748B;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.closeBtn:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+/* Camera area — constrain height, hide canvas duplicate */
+.cameraWrap {
+    position: relative;
+    background: #0F172A;
+    max-height: 360px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.cameraContainer {
+    width: 100%;
+    max-height: 360px;
+    overflow: hidden;
+}
+
+/* html5-qrcode injects video + canvas — only show video, hide the duplicated canvas */
+.cameraContainer video {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 360px !important;
+    object-fit: cover !important;
+    display: block !important;
+    border-radius: 0 !important;
+}
+
+/* The shaded region canvas — position it on top of the video */
+.cameraContainer img {
+    max-height: 360px !important;
+    object-fit: cover !important;
+}
+
+.loadingOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #94A3B8;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(249, 115, 22, 0.20);
+    border-top-color: #F97316;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.errorBox {
+    padding: 20px;
+    text-align: center;
+    color: #EF4444;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.errorSub {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #94A3B8;
+    font-weight: 400;
+}
+
+/* Last scanned code banner */
+.lastScan {
+    padding: 10px 20px;
+    background: #F0FDF4;
+    color: #15803D;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border-top: 1px solid #86EFAC;
+    text-align: center;
+    animation: fadeIn 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* Hint footer */
+.hint {
+    padding: 14px 20px;
+    border-top: 1px solid #F1F5F9;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.hint p {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.hintSub {
+    margin-top: 4px !important;
+    font-size: 11px !important;
+    color: #94A3B8 !important;
+}

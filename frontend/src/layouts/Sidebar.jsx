@@ -53,14 +53,14 @@ const MENU_CONFIG = [
         label: 'Nhập / Xuất kho',
         icon: <SwapOutlined />,
         path: 'inventory',
-        roles: ['OWNER', 'MANAGER', 'STAFF'],
+        roles: ['OWNER', 'MANAGER'],
     },
     {
         key: 'stocktake',
         label: 'Kiểm kê',
         icon: <AuditOutlined />,
         path: 'stocktake',
-        roles: ['OWNER', 'MANAGER', 'STAFF'],
+        roles: ['OWNER', 'MANAGER'],
     },
     {
         type: 'divider',
