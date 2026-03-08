@@ -84,3 +84,21 @@ export const getTimeAgo = (timestamp) => {
   if (diffDays < 7) return `${diffDays} ngày trước`;
   return 'Cách đây lâu';
 };
+
+/**
+ * Lấy thông tin tóm tắt kho trước khi xóa (số phiếu, thành viên, chặn nếu PROCESSING).
+ * Chỉ OWNER mới gọi được.
+ */
+export const getDeleteSummary = async (tenantId) => {
+  const response = await axiosClient.get(`/v1/workspaces/${tenantId}/delete-summary`);
+  return response.data;
+};
+
+/**
+ * Soft-delete workspace. Chỉ OWNER, không có phiếu PROCESSING.
+ * Backend đánh dấu status=DELETED + deletedAt, dữ liệu vẫn còn trong DB.
+ */
+export const deleteWorkspace = async (tenantId) => {
+  const response = await axiosClient.delete(`/v1/workspaces/${tenantId}`);
+  return response.data;
+};

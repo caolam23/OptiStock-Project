@@ -1,0 +1,266 @@
+/* Inventory.module.css — Styles cho trang Nhập / Xuất kho */
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btnPrimary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: none;
+    background: #F97316;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btnPrimary:hover:not(:disabled) {
+    background: #ea6c0a;
+}
+
+.btnGhost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: #fff;
+    color: #64748B;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btnGhost:hover:not(:disabled) {
+    border-color: #F97316;
+    color: #F97316;
+}
+
+.btnGhost:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btnGhostSm {
+    composes: btnGhost;
+    font-size: 12px;
+    padding: 5px 12px;
+}
+
+.btnPrimarySm {
+    composes: btnPrimary;
+    font-size: 12px;
+    padding: 5px 12px;
+}
+
+/* ── FILTER BAR ────────────────────────────────────────────── */
+.filterBar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+}
+
+.filterDivider {
+    width: 1px;
+    height: 20px;
+    background: #E2E8F0;
+}
+
+.filterGroup {
+    display: flex;
+    gap: 4px;
+}
+
+.tabActive {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #FFF7ED;
+    color: #F97316;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tabInactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #64748B;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.tabInactive:hover {
+    color: #0F172A;
+}
+
+/* ── TABLE ─────────────────────────────────────────────────── */
+.tableCard {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 1px solid #E2E8F0;
+    background: #F8FAFC;
+}
+
+.tr {
+    transition: background 0.1s;
+}
+
+.trEven {
+    background: #fff;
+}
+
+.trOdd {
+    background: #F8FAFC;
+}
+
+.tr:hover {
+    background: #FFF7ED;
+}
+
+.td {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.tdCenter {
+    text-align: center;
+}
+
+.tdRight {
+    text-align: right;
+}
+
+.codeText {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #F97316;
+    background: #FFF7ED;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.voucherTitle {
+    font-weight: 600;
+    color: #0F172A;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.voucherDest {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: #94A3B8;
+    margin-top: 2px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.priorityLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.itemCount {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0F172A;
+}
+
+/* ── STATES ────────────────────────────────────────────────── */
+.loadingState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 64px 24px;
+    color: #94A3B8;
+}
+
+.loadingText {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.errorBox {
+    margin: 0 0 24px;
+    padding: 14px 18px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.errorMsg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #DC2626;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.headerActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}

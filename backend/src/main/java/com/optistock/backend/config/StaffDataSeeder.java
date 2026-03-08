@@ -18,14 +18,12 @@ import java.util.List;
  * CHỈ CHẠY KHI PROFILE = "dev" (production tự bỏ qua).
  * Hoạt động hoàn toàn độc lập — xóa file này không ảnh hưởng code.
  *
- * Tạo:
- * - 10 Products test (có barcode)
- * - 5 Locations test
- * - 3 phiếu Nhập kho (PENDING)
- * - 3 phiếu Xuất kho (PENDING)
- * - 2 phiếu Kiểm kê (PENDING)
+ * STRATEGY (Option 2 — Seed 1 lần duy nhất):
+ * - Tìm tenant MỚI NHẤT (sort theo createdAt DESC)
+ * - Mỗi loại data: nếu đã có đủ → SKIP không đụng gì
+ * - Phiếu: chỉ tạo mới nếu CHƯA tồn tại (không xóa/reset)
+ * → Restart backend bao nhiêu lần cũng an toàn!
  *
- * Data sẽ link vào Tenant đầu tiên tìm được trong DB.
  * Nếu chưa có Tenant → skip (cần tạo workspace trước).
  */
 @Component
@@ -50,18 +48,23 @@ public class StaffDataSeeder implements CommandLineRunner {
 
         @Override
         public void run(String... args) {
-                // Tìm tenant đầu tiên trong DB
+                // Tìm tenant MỚI NHẤT (sort createdAt DESC)
                 List<Tenant> tenants = tenantRepository.findAll();
                 if (tenants.isEmpty()) {
                         System.out.println("⏭️ StaffDataSeeder: Chưa có Tenant — bỏ qua. Hãy tạo workspace trước.");
                         return;
                 }
 
-                Tenant tenant = tenants.get(tenants.size() - 1); // Lấy tenant mới nhất
+                // Sort để lấy tenant mới nhất — không phụ thuộc thứ tự MongoDB trả về
+                Tenant tenant = tenants.stream()
+                                .filter(t -> t.getCreatedAt() != null)
+                                .max(java.util.Comparator.comparing(Tenant::getCreatedAt))
+                                .orElse(tenants.get(tenants.size() - 1)); // fallback nếu không có createdAt
+
                 String tenantId = tenant.getId();
 
                 System.out.println(
-                                "🌱 StaffDataSeeder: Đang seed data cho tenant '" + tenant.getName() + "' (ID: "
+                                "🌱 StaffDataSeeder: Target tenant '" + tenant.getName() + "' (ID: "
                                                 + tenantId + ")");
 
                 seedProducts(tenantId);
@@ -69,7 +72,7 @@ public class StaffDataSeeder implements CommandLineRunner {
                 seedStockVouchers(tenantId);
                 seedStocktakeTickets(tenantId);
 
-                System.out.println("✅ StaffDataSeeder: Hoàn tất seed data test cho Staff!");
+                System.out.println("✅ StaffDataSeeder: Hoàn tất!");
         }
 
         // ============================================================
@@ -154,17 +157,16 @@ public class StaffDataSeeder implements CommandLineRunner {
         // STOCK VOUCHERS — 3 Nhập + 3 Xuất
         // ============================================================
         private void seedStockVouchers(String tenantId) {
-                // Luôn xóa phiếu test cũ và tạo mới — tránh stale PROCESSING/COMPLETED data
+                // Option 2: chỉ seed nếu CHƯA có phiếu test — không reset mỗi lần restart
                 List<String> testCodes = Arrays.asList("PN-001", "PN-002", "PN-003", "PX-055", "PX-056", "PX-057");
-                List<StockVoucher> old = new java.util.ArrayList<>(
-                                stockVoucherRepository.findByTenantIdAndStatus(tenantId, "PENDING"));
-                old.addAll(stockVoucherRepository.findByTenantIdAndStatus(tenantId, "PROCESSING"));
-                old.addAll(stockVoucherRepository.findByTenantIdAndStatus(tenantId, "COMPLETED"));
-                old.stream()
-                                .filter(v -> testCodes.contains(v.getVoucherCode()))
-                                .forEach(v -> stockVoucherRepository.deleteById(v.getId()));
+                List<StockVoucher> all = stockVoucherRepository.findByTenantId(tenantId);
+                boolean alreadySeeded = all.stream().anyMatch(v -> testCodes.contains(v.getVoucherCode()));
+                if (alreadySeeded) {
+                        System.out.println("   📋 StockVouchers: Đã có phiếu test — bỏ qua (restart an toàn).");
+                        return;
+                }
 
-                System.out.println("   📋 StockVouchers: Xóa phiếu test cũ, tạo lại fresh data...");
+                System.out.println("   📋 StockVouchers: Chưa có phiếu test — tạo mới...");
 
                 LocalDateTime now = LocalDateTime.now();
 
@@ -302,14 +304,17 @@ public class StaffDataSeeder implements CommandLineRunner {
         // STOCKTAKE TICKETS — 2 phiếu kiểm kê
         // ============================================================
         private void seedStocktakeTickets(String tenantId) {
-                // Luôn xóa phiếu kiểm kê test cũ và tạo mới
+                // Option 2: chỉ seed nếu CHƯA có — không reset mỗi lần restart
                 List<String> testCodes = Arrays.asList("KK-003", "KK-004");
                 List<StocktakeTicket> allTickets = stocktakeTicketRepository.findByTenantId(tenantId);
-                allTickets.stream()
-                                .filter(t -> testCodes.contains(t.getTicketCode()))
-                                .forEach(t -> stocktakeTicketRepository.deleteById(t.getId()));
+                boolean alreadySeeded = allTickets.stream().anyMatch(t -> testCodes.contains(t.getTicketCode()));
+                if (alreadySeeded) {
+                        System.out.println(
+                                        "   📝 StocktakeTickets: Đã có phiếu kiểm kê test — bỏ qua (restart an toàn).");
+                        return;
+                }
 
-                System.out.println("   📝 StocktakeTickets: Xóa phiếu kiểm kê test cũ, tạo lại fresh data...");
+                System.out.println("   📝 StocktakeTickets: Chưa có phiếu kiểm kê — tạo mới...");
 
                 StocktakeTicket kk003 = StocktakeTicket.builder()
                                 .tenantId(tenantId).ticketCode("KK-003")

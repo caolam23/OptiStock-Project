@@ -4,7 +4,8 @@ public enum TenantStatus {
     ACTIVE("ACTIVE", "Hoạt động"),
     INACTIVE("INACTIVE", "Không hoạt động"),
     LOCKED("LOCKED", "Bị khóa"),
-    SUSPENDED("SUSPENDED", "Tạm ngưng");
+    SUSPENDED("SUSPENDED", "Tạm ngưng"),
+    DELETED("DELETED", "Đã xóa");
 
     private final String code;
     private final String description;

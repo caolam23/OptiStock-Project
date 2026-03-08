@@ -40,4 +40,7 @@ public interface StocktakeTicketRepository extends MongoRepository<StocktakeTick
      * Lấy phiếu theo tenant + nhiều status (PENDING + IN_PROGRESS cho dashboard)
      */
     List<StocktakeTicket> findByTenantIdAndStatusIn(String tenantId, List<String> statuses);
+
+    /** Manager: Đếm tất cả phiếu của workspace (để tự sinh ticketCode) */
+    long countByTenantId(String tenantId);
 }

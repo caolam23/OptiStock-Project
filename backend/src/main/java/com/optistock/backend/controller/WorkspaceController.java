@@ -32,15 +32,15 @@ public class WorkspaceController {
      * Retrieves all workspaces (tenants) that the current user is a member of
      * Sorted by last access time (most recent first)
      * 
-     * Response: 
+     * Response:
      * [
-     *   {
-     *     "id": "tenant_id",
-     *     "name": "Workspace Name",
-     *     "industryCode": "fmcg",
-     *     "role": "MANAGER",
-     *     "lastAccessed": "2026-02-25T14:30:00Z"
-     *   }
+     * {
+     * "id": "tenant_id",
+     * "name": "Workspace Name",
+     * "industryCode": "fmcg",
+     * "role": "MANAGER",
+     * "lastAccessed": "2026-02-25T14:30:00Z"
+     * }
      * ]
      * 
      * @return List of user's workspaces or empty list if none found
@@ -51,7 +51,7 @@ public class WorkspaceController {
         try {
             // Get user ID from security context
             String userId = getUserIdFromContext(authHeader);
-            
+
             if (userId == null || userId.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(List.of());
@@ -84,10 +84,10 @@ public class WorkspaceController {
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             String userId = getUserIdFromContext(authHeader);
-            
+
             // Note: Add authorization check to ensure user is member of this workspace
             List<WorkspaceResponseDTO> workspaces = workspaceService.getUserWorkspaces(userId);
-            
+
             WorkspaceResponseDTO workspace = workspaces.stream()
                     .filter(w -> tenantId.equals(w.getId()))
                     .findFirst()
@@ -106,6 +106,47 @@ public class WorkspaceController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error retrieving workspace");
+        }
+    }
+
+    /**
+     * GET /api/v1/workspaces/{tenantId}/delete-summary
+     * Lấy thông tin tóm tắt trước khi xóa (số phiếu, thành viên, ...)
+     * Chỉ OWNER mới gọi được.
+     */
+    @GetMapping("/{tenantId}/delete-summary")
+    public ResponseEntity<?> getDeleteSummary(
+            @PathVariable String tenantId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            String userId = getUserIdFromContext(authHeader);
+            if (userId == null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.ok(workspaceService.getDeleteSummary(tenantId, userId));
+        } catch (AuthException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /api/v1/workspaces/{tenantId}
+     * Soft-delete workspace. Chỉ OWNER, không có phiếu PROCESSING.
+     */
+    @DeleteMapping("/{tenantId}")
+    public ResponseEntity<?> deleteWorkspace(
+            @PathVariable String tenantId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            String userId = getUserIdFromContext(authHeader);
+            if (userId == null)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            workspaceService.deleteWorkspace(tenantId, userId);
+            return ResponseEntity.ok(java.util.Map.of("message", "Xóa kho thành công"));
+        } catch (AuthException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("message", "Lỗi khi xóa kho: " + e.getMessage()));
         }
     }
 

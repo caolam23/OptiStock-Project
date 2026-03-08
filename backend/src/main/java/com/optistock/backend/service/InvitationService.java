@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * InvitationService: Xử lý logic cho accept/reject/info lời mời thành viên.
- */
 @Service
 public class InvitationService {
 
@@ -28,14 +25,17 @@ public class InvitationService {
     private final InvitationRepository invitationRepository;
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
+    private final PersonnelEventService personnelEventService;
 
     public InvitationService(
             InvitationRepository invitationRepository,
             TenantRepository tenantRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PersonnelEventService personnelEventService) {
         this.invitationRepository = invitationRepository;
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
+        this.personnelEventService = personnelEventService;
     }
 
     // ============================================================
@@ -117,6 +117,10 @@ public class InvitationService {
         tenant.setMembers(members);
         tenantRepository.save(tenant);
         log.info("User {} đã join tenant {} với role {}", currentUserEmail, tenant.getName(), invitation.getRole());
+
+        // Broadcast SSE — tất cả OWNER/MANAGER đang xem trang Nhân sự sẽ lập tức cập
+        // nhật
+        personnelEventService.broadcast(tenant.getId(), "personnel-updated");
 
         // 6. Cập nhật trạng thái Invitation
         invitation.setStatus("ACCEPTED");

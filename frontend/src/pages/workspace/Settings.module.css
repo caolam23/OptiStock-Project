@@ -1,0 +1,71 @@
+/* Settings.module.css — Styles cho trang Cài đặt workspace */
+
+/* ── DANGER ZONE ────────────────────────────────────────────── */
+.dangerZone {
+    margin: 24px 24px 0;
+    border: 1.5px solid #FECACA;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.dangerHeader {
+    background: #FFF5F5;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #FECACA;
+}
+
+.dangerHeaderTitle {
+    font-weight: 700;
+    color: #DC2626;
+    font-size: 15px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.dangerRow {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #fff;
+}
+
+.dangerLabel {
+    font-weight: 600;
+    color: #1E293B;
+    font-size: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.dangerDesc {
+    color: #64748B;
+    font-size: 13px;
+    margin-top: 4px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.btnDelete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: #fff;
+    color: #DC2626;
+    border: 1.5px solid #DC2626;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btnDelete:hover {
+    background: #DC2626;
+    color: #fff;
+}

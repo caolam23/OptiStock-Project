@@ -33,7 +33,7 @@ import Customers from '../pages/workspace/Customers';
 import StaffTasks from '../pages/workspace/StaffTasks';
 import ProcessVoucher from '../pages/workspace/ProcessVoucher';
 import StocktakeDetail from '../pages/workspace/StocktakeDetail';
-import Team from '../pages/workspace/Team';
+import Personnel from '../pages/workspace/Personnel';
 import AuditLog from '../pages/workspace/AuditLog';
 import Settings from '../pages/workspace/Settings';
 
@@ -162,10 +162,10 @@ const AppRouter = () => {
                         </WorkspaceRoleRoute>
                     } />
 
-                    {/* Nhân sự — chỉ OWNER */}
-                    <Route path="team" element={
-                        <WorkspaceRoleRoute allowedRoles={['OWNER']}>
-                            <Team />
+                    {/* Nhân sự — OWNER + MANAGER */}
+                    <Route path="personnel" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER']}>
+                            <Personnel />
                         </WorkspaceRoleRoute>
                     } />
 

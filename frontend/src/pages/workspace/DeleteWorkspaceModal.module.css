@@ -1,0 +1,251 @@
+/* DeleteWorkspaceModal.module.css */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 480px;
+    max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.2s ease;
+    overflow: hidden;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(16px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid #FEE2E2;
+    background: #FFF5F5;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #DC2626;
+}
+
+.headerIcon {
+    font-size: 18px;
+    color: #DC2626;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.closeBtn:hover {
+    background: #F1F5F9;
+}
+
+.loadingWrap {
+    padding: 32px;
+    text-align: center;
+    color: #64748B;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 20px 20px 0;
+}
+
+.blockedBox {
+    margin: 16px 20px 0;
+    padding: 14px 16px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    color: #DC2626;
+    font-size: 13px;
+}
+
+.blockedBox p {
+    margin: 4px 0 0;
+    color: #7F1D1D;
+    font-size: 13px;
+}
+
+.warningBox {
+    margin: 16px 20px 0;
+    padding: 14px 16px;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    color: #D97706;
+    font-size: 13px;
+}
+
+.warningBox p {
+    margin: 4px 0 0;
+    color: #78350F;
+    font-size: 13px;
+}
+
+.confirmSection {
+    padding: 16px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.confirmLabel {
+    font-size: 13px;
+    color: #475569;
+}
+
+.confirmInput {
+    padding: 10px 14px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1E293B;
+    background: #FFFFFF;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    font-family: 'Inter', monospace;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.confirmInput::placeholder {
+    color: #94A3B8;
+}
+
+.confirmInput:focus {
+    border-color: #EF4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    background: #FFFAFA;
+}
+
+.confirmHint {
+    font-size: 12px;
+    color: #EF4444;
+}
+
+.confirmOk {
+    font-size: 12px;
+    color: #22C55E;
+    font-weight: 600;
+}
+
+.errorBox {
+    margin: 12px 20px 0;
+    padding: 10px 14px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #DC2626;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 20px;
+    margin-top: 8px;
+}
+
+.cancelBtn {
+    padding: 9px 20px;
+    background: #F1F5F9;
+    color: #475569;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.cancelBtn:hover:not(:disabled) {
+    background: #E2E8F0;
+}
+
+.cancelBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.deleteBtn {
+    padding: 9px 20px;
+    background: #DC2626;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, opacity 0.15s;
+}
+
+.deleteBtn:hover:not(:disabled) {
+    background: #B91C1C;
+}
+
+.deleteBtn:disabled {
+    background: #FCA5A5;
+    cursor: not-allowed;
+}

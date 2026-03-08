@@ -1,24 +1,28 @@
 import React from 'react';
 import { AuditOutlined } from '@ant-design/icons';
-import styles from './WorkspacePage.module.css';
+import sharedStyles from './WorkspacePage.module.css';
 
-const Stocktake = () => {
-    return (
-        <div className={styles.pageContainer}>
-            <div className={styles.pageHeader}>
-                <div className={styles.pageHeaderLeft}>
-                    <h1 className={styles.pageTitle}>Kiểm kê</h1>
-                    <p className={styles.pageSubtitle}>Kiểm kê hàng hóa theo vị trí và phân tích chênh lệch</p>
-                </div>
-            </div>
-            <div className={styles.placeholderCard}>
-                <div className={styles.placeholderIcon}><AuditOutlined /></div>
-                <h3 className={styles.placeholderTitle}>Kiểm kê thông minh</h3>
-                <p className={styles.placeholderText}>Luồng kiểm kê từ tạo phiếu, đếm thực tế, gửi báo cáo đến duyệt chênh lệch sẽ được xây dựng tại đây.</p>
-                <span className={styles.placeholderBadge}><AuditOutlined /> Đang phát triển</span>
+/**
+ * Stocktake.jsx — Trang quản lý phiếu kiểm kê (MANAGER)
+ * TODO: Implement UI + gọi getAllStocktakes() từ managerApi.js
+ */
+const Stocktake = () => (
+    <div className={sharedStyles.pageContainer}>
+        <div className={sharedStyles.pageHeader}>
+            <div className={sharedStyles.pageHeaderLeft}>
+                <h1 className={sharedStyles.pageTitle}><AuditOutlined /> Kiểm kê</h1>
+                <p className={sharedStyles.pageSubtitle}>Kiểm kê hàng hóa theo vị trí và phân tích chênh lệch</p>
             </div>
         </div>
-    );
-};
+        <div className={sharedStyles.placeholderCard}>
+            <div className={sharedStyles.placeholderIcon}><AuditOutlined /></div>
+            <h3 className={sharedStyles.placeholderTitle}>Kiểm kê thông minh</h3>
+            <p className={sharedStyles.placeholderText}>
+                Tạo phiếu kiểm kê, Staff đi đếm thực tế và gửi báo cáo, Manager duyệt chênh lệch.
+            </p>
+            <span className={sharedStyles.placeholderBadge}><AuditOutlined /> Đang phát triển</span>
+        </div>
+    </div>
+);
 
 export default Stocktake;

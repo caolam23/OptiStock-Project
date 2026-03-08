@@ -37,6 +37,7 @@ public class TenantAccessFilter extends OncePerRequestFilter {
     /** Các path không cần workspace context */
     private static final List<String> EXCLUDED_PATHS = Arrays.asList(
             "/api/auth/",
+            "/api/v1/invitations/", // Invitation flow: workspace context lấy từ invitation, không phải header
             "/api/v1/workspaces/my-workspaces",
             "/api/v1/onboarding",
             "/api/admin");

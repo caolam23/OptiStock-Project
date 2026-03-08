@@ -44,4 +44,10 @@ public interface StockVoucherRepository extends MongoRepository<StockVoucher, St
      * dashboard)
      */
     List<StockVoucher> findByTenantIdAndTypeAndStatusIn(String tenantId, String type, List<String> statuses);
+
+    /** Manager: Lấy tất cả phiếu của workspace (kể cả COMPLETED) */
+    List<StockVoucher> findByTenantId(String tenantId);
+
+    /** Manager: Đếm phiếu theo tenant + type (để tự sinh voucherCode) */
+    long countByTenantIdAndType(String tenantId, String type);
 }

@@ -60,8 +60,12 @@ public class SecurityConfig {
                         // Invitation accept/reject: cần đăng nhập
                         .requestMatchers("/api/v1/invitations/**").authenticated()
                         .requestMatchers("/api/onboarding/**", "/api/v1/onboarding/**").authenticated()
+                        // SSE endpoint: EventSource không gửi được JWT header → permitAll
+                        // (endpoint này chỉ push dữ liệu, không trả dữ liệu nhạy cảm)
+                        .requestMatchers("/api/v1/workspaces/*/personnel/events").permitAll()
                         .requestMatchers("/api/v1/workspaces/**").authenticated()
                         .requestMatchers("/api/v1/staff/**").authenticated()
+                        .requestMatchers("/api/v1/manager/**").authenticated()
                         .requestMatchers("/api/admin/**").authenticated()
                         .anyRequest().authenticated());
 

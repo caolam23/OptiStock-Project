@@ -1,0 +1,311 @@
+/* Personnel.module.css — Styles cho trang Quản lý Nhân sự */
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btnPrimary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: none;
+    background: #F97316;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btnPrimary:hover {
+    background: #ea6c0a;
+}
+
+.btnGhost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: #fff;
+    color: #64748B;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.btnGhost:hover {
+    border-color: #F97316;
+    color: #F97316;
+}
+
+.btnDanger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #94A3B8;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btnDanger:hover {
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+/* ── TABS ──────────────────────────────────────────────────── */
+.tabBar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.tabActive {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #FFF7ED;
+    color: #F97316;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tabInactive {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #64748B;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.tabInactive:hover {
+    color: #0F172A;
+}
+
+/* ── CARD / TABLE ──────────────────────────────────────────── */
+.card {
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    /* NOTE: overflow:visible is required so the dropdown popup is not clipped */
+    overflow: visible;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 14px;
+}
+
+.th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 1px solid #E2E8F0;
+    background: #F8FAFC;
+}
+
+.th:first-child {
+    border-radius: 14px 0 0 0;
+}
+
+.th:last-child {
+    border-radius: 0 14px 0 0;
+}
+
+.td {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.trEven {
+    background: #fff;
+}
+
+.trOdd {
+    background: #F8FAFC;
+}
+
+/* ── ROLE BADGE ────────────────────────────────────────────── */
+.roleBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ── ROLE SELECT BUTTON (editable) ────────────────────────── */
+.roleBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1.5px solid transparent;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: opacity 0.15s;
+}
+
+.roleBtn:hover {
+    opacity: 0.85;
+}
+
+/* ── DROPDOWN (fixed-position, rendered via portal-ish) ─────── */
+.dropdown {
+    position: fixed;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.12);
+    z-index: 9999;
+    min-width: 160px;
+    overflow: hidden;
+}
+
+.dropdownOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+}
+
+.dropdownItem {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 14px;
+    border: none;
+    background: #fff;
+    color: #0F172A;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: background 0.1s;
+}
+
+.dropdownItem:hover {
+    background: #F8FAFC;
+}
+
+.dropdownItemActive {
+    composes: dropdownItem;
+    font-weight: 700;
+    background: #F8FAFC;
+}
+
+/* ── AVATAR ────────────────────────────────────────────────── */
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFF7ED;
+    color: #F97316;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.memberRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.memberName {
+    font-weight: 600;
+    color: #0F172A;
+    font-size: 13px;
+}
+
+.memberEmail {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.selfTag {
+    margin-left: 6px;
+    font-size: 11px;
+    color: #F97316;
+    background: #FFF7ED;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+/* ── STATUS BADGES ─────────────────────────────────────────── */
+.badgePending {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #FFFBEB;
+    color: #D97706;
+}
+
+.badgeExpired {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+/* ── ERROR BOX ──────────────────────────────────────────────── */
+.errorBox {
+    padding: 12px 16px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 10px;
+    color: #DC2626;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+}

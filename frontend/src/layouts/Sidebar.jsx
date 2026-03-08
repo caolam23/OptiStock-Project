@@ -110,11 +110,11 @@ const MENU_CONFIG = [
         roles: ['OWNER'],
     },
     {
-        key: 'team',
+        key: 'personnel',
         label: 'Nhân sự',
         icon: <TeamOutlined />,
-        path: 'team',
-        roles: ['OWNER'],
+        path: 'personnel',
+        roles: ['OWNER', 'MANAGER'],
     },
     {
         key: 'audit-log',
