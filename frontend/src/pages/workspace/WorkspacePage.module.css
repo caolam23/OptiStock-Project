@@ -97,13 +97,14 @@
 
 /* ================ STAT GRID ================ */
 .statGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 28px;
 }
 
 .statCard {
+    flex: 1 1 220px;
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 14px;
@@ -117,6 +118,11 @@
 .statCard:hover {
     border-color: #FDBA74;
     box-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.08);
+}
+
+/* Thẻ mở rộng dành riêng cho các con số dài như Doanh thu */
+.statCardWide {
+    flex: 1.25 1 280px; /* Hơi to hơn thẻ thường một chút, giãn ra vừa đủ chữ */
 }
 
 .statIcon {
@@ -187,7 +193,6 @@
     }
 
     .statGrid {
-        grid-template-columns: 1fr 1fr;
         gap: 12px;
     }
 
@@ -202,6 +207,11 @@
 
 @media (max-width: 480px) {
     .statGrid {
-        grid-template-columns: 1fr;
+        flex-direction: column;
     }
+
+/* Trên điện thoại nhỏ, trả thẻ rộng về lại 1 cột cho vừa màn hình */
+.statCardWide {
+    flex: 1 1 auto;
+}
 }

@@ -3,9 +3,11 @@ package com.optistock.backend.service;
 import com.optistock.backend.dto.StockVoucherDTO;
 import com.optistock.backend.exception.AuthException;
 import com.optistock.backend.model.Product;
+import com.optistock.backend.model.SalesOrder;
 import com.optistock.backend.model.StockVoucher;
 import com.optistock.backend.model.VoucherItem;
 import com.optistock.backend.repository.ProductRepository;
+import com.optistock.backend.repository.SalesOrderRepository;
 import com.optistock.backend.repository.StockVoucherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,9 @@ public class StaffVoucherService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private SalesOrderRepository salesOrderRepository;
 
     // ================================================================
     // 1. DASHBOARD — Lấy tất cả phiếu chờ theo tenant
@@ -219,7 +224,46 @@ public class StaffVoucherService {
         System.out.printf("✅ Phiếu %s hoàn tất bởi %s lúc %s%n",
                 voucher.getVoucherCode(), staffUserId, voucher.getCompletedAt());
 
+        // ── ĐỒNG BỘ TRẠNG THÁI ĐƠN HÀNG (Nếu là phiếu xuất của đơn hàng) ──
+        if ("OUTBOUND".equals(voucher.getType()) && voucher.getTitle() != null && voucher.getTitle().startsWith("Xuất hàng cho Đơn ")) {
+            String orderCode = voucher.getTitle().replace("Xuất hàng cho Đơn ", "").trim();
+            salesOrderRepository.findByTenantIdAndOrderCode(tenantId, orderCode).ifPresent(order -> {
+                order.setStatus("COMPLETED");
+                order.setUpdatedAt(LocalDateTime.now());
+                salesOrderRepository.save(order);
+            });
+        }
+
         return toDTO(saved);
+    }
+
+    // ================================================================
+    // 7. HỦY PHIẾU KHO (Dành cho Manager và Owner)
+    // ================================================================
+
+    /**
+     * Hủy phiếu nhập/xuất kho khi lỡ tạo nhầm.
+     * CHỈ MANAGER HOẶC OWNER mới có quyền thực hiện.
+     * Không thể hủy phiếu đã COMPLETED.
+     */
+    public StockVoucherDTO cancelVoucher(String tenantId, String voucherId, String userId, String userRole) {
+        // Kiểm tra phân quyền: Cho phép OWNER và MANAGER
+        if (!"MANAGER".equalsIgnoreCase(userRole) && !"OWNER".equalsIgnoreCase(userRole)) {
+            throw new AuthException("Từ chối truy cập: Chỉ Quản lý (MANAGER) hoặc Chủ kho (OWNER) mới có quyền hủy phiếu kho.");
+        }
+
+        StockVoucher voucher = getVoucherEntity(tenantId, voucherId);
+
+        if ("COMPLETED".equals(voucher.getStatus())) {
+            throw new AuthException("Không thể hủy phiếu kho đã hoàn tất thực tế (COMPLETED).");
+        }
+
+        voucher.setStatus("CANCELLED");
+        // Ghi nhận ID của người đã thực hiện lệnh hủy
+        voucher.setProcessedBy(userId); 
+        voucher.setUpdatedAt(LocalDateTime.now());
+
+        return toDTO(stockVoucherRepository.save(voucher));
     }
 
     // ================================================================

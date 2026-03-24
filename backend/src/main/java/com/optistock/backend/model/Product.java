@@ -27,7 +27,8 @@ public class Product {
     private String supplier;
     private boolean isActive = true;
     private List<String> unitConversionIds; // IDs của các quy đổi
-    
+    private Double sellingPrice; // Giá bán niêm yết
+    private Double maxDiscountPercent; // % chiết khấu tối đa cho phép
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
@@ -192,5 +193,21 @@ public class Product {
 
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public Double getSellingPrice() {
+        return sellingPrice;
+    }
+
+    public void setSellingPrice(Double sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public Double getMaxDiscountPercent() {
+        return maxDiscountPercent;
+    }
+
+    public void setMaxDiscountPercent(Double maxDiscountPercent) {
+        this.maxDiscountPercent = maxDiscountPercent;
     }
 }
