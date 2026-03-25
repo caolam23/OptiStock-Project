@@ -11,6 +11,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * 401 Unauthorized — Chưa login hoặc token hết hạn / không hợp lệ.
+     */
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<?> handleAuthException(AuthException ex) {
         Map<String, Object> response = new HashMap<>();
@@ -18,6 +21,21 @@ public class GlobalExceptionHandler {
         response.put("errorCode", ex.getErrorCode());
         response.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
+     * 403 Forbidden — Đã login nhưng không đủ quyền truy cập.
+     * Ném bởi WorkspaceRoleAspect khi @RequireWorkspaceRole không thỏa mãn:
+     * - User không phải member của workspace (WORKSPACE_ACCESS_DENIED)
+     * - User có role không đủ quyền (INSUFFICIENT_ROLE)
+     */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<?> handleForbiddenException(ForbiddenException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("errorCode", ex.getErrorCode());
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(UserNotFoundException.class)

@@ -2,6 +2,7 @@ package com.optistock.backend.security.aspect;
 
 import com.optistock.backend.enums.WorkspaceRole;
 import com.optistock.backend.exception.AuthException;
+import com.optistock.backend.exception.ForbiddenException;
 import com.optistock.backend.model.Tenant;
 import com.optistock.backend.model.TenantMember;
 import com.optistock.backend.repository.TenantRepository;
@@ -85,7 +86,8 @@ public class WorkspaceRoleAspect {
                 .findFirst();
 
         if (memberOpt.isEmpty()) {
-            throw new AuthException("Bạn không phải thành viên của workspace này");
+            throw new ForbiddenException("WORKSPACE_ACCESS_DENIED",
+                    "Bạn không phải thành viên của workspace này");
         }
 
         TenantMember member = memberOpt.get();
@@ -97,8 +99,9 @@ public class WorkspaceRoleAspect {
                 .collect(Collectors.toSet());
 
         if (!allowedRoles.contains(memberRole)) {
-            throw new AuthException(requireWorkspaceRole.message()
-                    + " (Cần: " + allowedRoles + ", Bạn có: " + memberRole + ")");
+            throw new ForbiddenException("INSUFFICIENT_ROLE",
+                    requireWorkspaceRole.message()
+                            + " (Cần: " + allowedRoles + ", Bạn có: " + memberRole + ")");
         }
 
         // 6. Set workspace context cho service layer sử dụng
