@@ -16,6 +16,8 @@ import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     ContainerOutlined,
+    ShoppingCartOutlined,
+    SearchOutlined,
 } from '@ant-design/icons';
 import styles from './Sidebar.module.css';
 
@@ -34,6 +36,13 @@ const MENU_CONFIG = [
         path: 'overview',
         roles: ['OWNER', 'MANAGER', 'ACCOUNTANT', 'SALE'],
     },
+    {
+    key: 'sale-dashboard',
+    label: 'Tổng Quan Bán Hàng',
+    icon: <AppstoreOutlined />,
+    path: 'sale-dashboard',
+    roles: ['OWNER', 'MANAGER', 'SALE'],
+},
     {
         key: 'products',
         label: 'Sản phẩm',
@@ -63,6 +72,13 @@ const MENU_CONFIG = [
         roles: ['OWNER', 'MANAGER'],
     },
     {
+    key: 'available-stock', // Key này phải khớp với route "available-stock" trong AppRouter.jsx
+    icon: <SearchOutlined />, // Hoặc icon nào bạn thích từ @ant-design/icons
+    label: 'Tra Cứu Tồn Kho',
+        path: 'available-stock',
+    roles: ['OWNER', 'MANAGER', 'SALE'] // Phân quyền những ai được thấy menu này
+},
+    {
         type: 'divider',
         roles: ['OWNER', 'MANAGER', 'ACCOUNTANT'],
     },
@@ -83,9 +99,9 @@ const MENU_CONFIG = [
     {
         key: 'orders',
         label: 'Đơn hàng',
-        icon: <FileTextOutlined />,
-        path: 'orders',
-        roles: ['OWNER', 'SALE'],
+        icon: <ShoppingCartOutlined />,
+        path: 'sales',
+        roles: ['OWNER', 'SALE', 'ACCOUNTANT'],
     },
     {
         key: 'customers',
@@ -103,7 +119,7 @@ const MENU_CONFIG = [
         label: 'Phiếu công việc',
         icon: <InboxOutlined />,
         path: 'staff-tasks',
-        roles: ['STAFF'],
+        roles: ['STAFF', 'MANAGER'],
     },
     {
         type: 'divider',

@@ -1,0 +1,176 @@
+/* ─────────────────────────────────────────
+   CreateSalesOrder.module.css
+   Adapted from ProcessVoucher style guide
+───────────────────────────────────────── */
+
+.pageContainer {
+    padding: 24px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.panel {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #F8FAFC;
+}
+
+.panelTitleWrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.panelTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0;
+}
+
+.panelSub {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    margin-top: 4px;
+}
+
+.formContent {
+    padding: 24px;
+}
+
+.formLabel {
+    font-weight: 600 !important;
+    color: #475569 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.inputField {
+    border-radius: 8px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.inputField:focus, .inputField:hover {
+    border-color: #F97316 !important;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1) !important;
+}
+
+.sectionTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E293B;
+    display: block;
+}
+
+.dashedBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: #F8FAFC;
+    color: #64748B;
+    border: 1px dashed #CBD5E1;
+    border-radius: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dashedBtn:hover {
+    border-color: #F97316;
+    color: #F97316;
+    background: #FFF7ED;
+}
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.primaryBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #F97316, #F59E0B);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.30);
+}
+
+.primaryBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(249, 115, 22, 0.40);
+}
+
+.primaryBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.actionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.checkBtn {
+    background: #EFF6FF;
+    color: #2563EB;
+    border-color: #BFDBFE;
+}
+
+.checkBtn:hover {
+    background: #DBEAFE;
+}
+
+.checkedBtn {
+    background: #F0FDF4;
+    color: #16A34A;
+    border-color: #BBF7D0;
+}
+
+.deleteBtn {
+    background: #FEF2F2;
+    color: #DC2626;
+    border-color: #FECACA;
+    padding: 6px 10px;
+}
+
+.deleteBtn:hover {
+    background: #FEE2E2;
+}
