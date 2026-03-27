@@ -101,7 +101,7 @@ const MENU_CONFIG = [
         label: 'Đơn hàng',
         icon: <ShoppingCartOutlined />,
         path: 'sales',
-        roles: ['OWNER', 'SALE', 'ACCOUNTANT'],
+        roles: ['OWNER', 'SALE', 'ACCOUNTANT','MANAGER'],
     },
     {
         key: 'customers',

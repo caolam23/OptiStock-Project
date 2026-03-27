@@ -131,7 +131,7 @@ const SalesOrderList = () => {
       title: 'Thao tác',
       key: 'actions',
       render: (_, record) => {
-        const canApprove = record.status === 'PENDING_APPROVAL' && currentUserRole === 'OWNER';
+        const canApprove = record.status === 'PENDING_APPROVAL' && (currentUserRole === 'OWNER' || currentUserRole === 'MANAGER');
         const isMyOrder = record.createdBy === currentUserId || record.userId === currentUserId;
         
         // Sale chỉ hủy được khi đang chờ và phải là đơn của mình. Quản lý/Owner có thể hủy đơn miễn là chưa Hoàn thành/Hủy/Từ chối.

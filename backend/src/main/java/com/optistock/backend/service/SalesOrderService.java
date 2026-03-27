@@ -192,6 +192,9 @@ public class SalesOrderService {
                 }
             }
             voucher.setItems(vItems);
+            
+            voucher.setCreatedAt(LocalDateTime.now());
+            voucher.setUpdatedAt(LocalDateTime.now());
             stockVoucherRepository.save(voucher);
         }
 
