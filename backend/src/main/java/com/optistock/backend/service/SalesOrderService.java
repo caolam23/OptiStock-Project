@@ -103,10 +103,10 @@ public class SalesOrderService {
         SalesOrder order = salesOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        // Phân quyền bảo mật: Chỉ cho phép OWNER duyệt đơn
+        // Phân quyền bảo mật: Cho phép OWNER và MANAGER duyệt đơn
         boolean isApprovalAction = "PROCESSING".equals(status) || "REJECTED".equals(status);
-        if (!"OWNER".equalsIgnoreCase(userRole) && isApprovalAction) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Từ chối truy cập: Chỉ Chủ kho (OWNER) mới có quyền duyệt đơn hàng.");
+        if (!"OWNER".equalsIgnoreCase(userRole) && !"MANAGER".equalsIgnoreCase(userRole) && isApprovalAction) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Từ chối truy cập: Chỉ Chủ kho (OWNER) hoặc Quản lý (MANAGER) mới có quyền duyệt đơn hàng.");
         }
 
         // Nếu bị TỪ CHỐI (REJECTED) hoặc HỦY (CANCELLED) -> Hoàn lại công nợ (chỉ khi đơn đã được duyệt/đang xử lý trước đó)
