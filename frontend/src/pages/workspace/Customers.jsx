@@ -43,7 +43,7 @@ const Customers = () => {
       }
     } catch (error) {}
     
-    return String(foundRole || '').toUpperCase();
+    return String(foundRole || '').trim().toUpperCase();
   };
 
   const workspaceRole = getRoleFromStorage(); 
@@ -100,11 +100,13 @@ const Customers = () => {
 
   const handleDelete = async (id) => {
     try {
-      await customerApi.deleteCustomer(id);
+      await axiosClient.delete(`/v1/customers/${id}`, {
+        headers: { 'X-Workspace-Role': workspaceRole }
+      });
       message.success('Đã xóa khách hàng');
       fetchCustomers();
     } catch (error) {
-      message.error('Lỗi khi xóa khách hàng');
+      message.error(error.response?.data?.message || 'Lỗi khi xóa khách hàng');
     }
   };
 
@@ -187,11 +189,13 @@ const Customers = () => {
           <button type="button" className={`${styles.actionBtn} ${styles.editBtn}`} onClick={() => handleOpenEdit(record)}>
             <EditOutlined />
           </button>
-          <Popconfirm title="Bạn có chắc muốn xóa khách hàng này?" onConfirm={() => handleDelete(record.id)} okText="Có" cancelText="Không">
-            <button type="button" className={`${styles.actionBtn} ${styles.deleteBtn}`}>
-              <DeleteOutlined />
-            </button>
-          </Popconfirm>
+          {['OWNER', 'MANAGER'].includes(workspaceRole) && (
+            <Popconfirm title="Bạn có chắc muốn xóa khách hàng này?" onConfirm={() => handleDelete(record.id)} okText="Có" cancelText="Không">
+              <button type="button" className={`${styles.actionBtn} ${styles.deleteBtn}`}>
+                <DeleteOutlined />
+              </button>
+            </Popconfirm>
+          )}
         </Space>
       ),
     }

@@ -40,8 +40,12 @@ public class CustomerController {
 
     // Xóa khách hàng
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@RequestHeader("X-Workspace-Id") String tenantId, @PathVariable String id) {
-        customerService.deleteCustomer(id, tenantId);
-        return ResponseEntity.noContent().build();
-    }
+public ResponseEntity<Void> deleteCustomer(
+        @RequestHeader("X-Workspace-Id") String tenantId, 
+        @PathVariable String id,
+        @RequestHeader(value = "X-Workspace-Role", defaultValue = "") String userRole) { // Thêm cái này
+        
+    customerService.deleteCustomer(id, tenantId, userRole);
+    return ResponseEntity.noContent().build();
+}
 }

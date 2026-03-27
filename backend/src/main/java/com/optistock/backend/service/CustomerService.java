@@ -4,6 +4,8 @@ import com.optistock.backend.model.Customer;
 import com.optistock.backend.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,7 +66,7 @@ public class CustomerService {
                                            "MANAGER".equalsIgnoreCase(userRole) || 
                                            "ACCOUNTANT".equalsIgnoreCase(userRole);
             if (!canUpdateCreditLimit) {
-                throw new RuntimeException("Từ chối truy cập: Nhân viên bán hàng (SALE) không được phép thay đổi hạn mức công nợ.");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Từ chối truy cập: Nhân viên bán hàng (SALE) không được phép thay đổi hạn mức công nợ.");
             }
             existing.setCreditLimit(updatedCustomer.getCreditLimit());
         }
@@ -73,11 +75,17 @@ public class CustomerService {
         return customerRepository.save(existing);
     }
 
-    public void deleteCustomer(String id, String tenantId) {
+    public void deleteCustomer(String id, String tenantId, String userRole) {
+        // --- 🔒 BẢO MẬT BACKEND: CHẶN SALE XÓA KHÁCH HÀNG ---
+        boolean canDelete = "OWNER".equalsIgnoreCase(userRole) || "MANAGER".equalsIgnoreCase(userRole);
+        if (!canDelete) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Từ chối truy cập: Bạn không có quyền xóa khách hàng.");
+        }
         Customer existing = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+                
         if (existing.getTenantId().equals(tenantId)) {
             customerRepository.delete(existing);
         }
-    }
+}
 }
