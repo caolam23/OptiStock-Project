@@ -260,7 +260,7 @@ const CreateSalesOrder = () => {
                     }}
                   >
                     {customers.map(c => (
-                      <Select.Option key={c.id} value={c.name} phone={c.phone} customer={c}>{c.name} - {c.phone}</Select.Option>
+                      <Select.Option key={c.id} value={c.name} phone={c.phone} customer={c}>{c.name}</Select.Option>
                     ))}
                   </Select>
                 </Form.Item>
