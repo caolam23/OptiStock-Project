@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +55,13 @@ public class InvitationService {
         // Lấy tên tenant để hiển thị
         String tenantName = "Workspace";
         try {
-            Tenant tenant = tenantRepository.findById(invitation.getTenantId()).orElse(null);
-            if (tenant != null && tenant.getName() != null) {
-                tenantName = tenant.getName();
+            String tenantId = (String) getFieldValue(invitation, "tenantId");
+            Tenant tenant = tenantRepository.findById(tenantId).orElse(null);
+            if (tenant != null) {
+                String name = getString(tenant, "name");
+                if (name != null) {
+                    tenantName = name;
+                }
             }
         } catch (Exception e) {
             log.warn("Không lấy được tên tenant: {}", e.getMessage());
@@ -64,11 +69,11 @@ public class InvitationService {
 
         Map<String, Object> info = new HashMap<>();
         info.put("tenantName", tenantName);
-        info.put("tenantId", invitation.getTenantId());
-        info.put("role", invitation.getRole());
-        info.put("invitedEmail", invitation.getInvitedEmail());
-        info.put("expiresAt", invitation.getExpiresAt());
-        info.put("status", invitation.getStatus());
+        info.put("tenantId", getFieldValue(invitation, "tenantId"));
+        info.put("role", getFieldValue(invitation, "role"));
+        info.put("invitedEmail", getFieldValue(invitation, "invitedEmail"));
+        info.put("expiresAt", getFieldValue(invitation, "expiresAt"));
+        info.put("status", getFieldValue(invitation, "status"));
 
         return info;
     }
@@ -99,8 +104,13 @@ public class InvitationService {
 
         // 4. Kiểm tra user đã là member chưa
         String userId = currentUser.getId();
-        List<TenantMember> members = tenant.getMembers();
-        boolean alreadyMember = members.stream()
+        @SuppressWarnings("unchecked")
+        List<TenantMember> members = (List<TenantMember>) getFieldValue(tenant, "members");
+        if (members == null) {
+            members = new java.util.ArrayList<>();
+        }
+        final List<TenantMember> finalMembers = members;
+        boolean alreadyMember = finalMembers.stream()
                 .anyMatch(m -> userId.equals(m.getUserId()));
         if (alreadyMember) {
             throw new IllegalStateException("Bạn đã là thành viên của workspace này.");
@@ -110,30 +120,29 @@ public class InvitationService {
         TenantMember newMember = new TenantMember(
                 userId,
                 currentUser.getEmail(),
-                invitation.getRole(),
+                (String) getFieldValue(invitation, "role"),
                 LocalDateTime.now(),
                 LocalDateTime.now());
-        members.add(newMember);
-        tenant.setMembers(members);
+        finalMembers.add(newMember);
         tenantRepository.save(tenant);
-        log.info("User {} đã join tenant {} với role {}", currentUserEmail, tenant.getName(), invitation.getRole());
+        log.info("User {} đã join tenant {} với role {}", currentUserEmail, getString(tenant, "name"), getFieldValue(invitation, "role"));
 
         // Broadcast SSE — tất cả OWNER/MANAGER đang xem trang Nhân sự sẽ lập tức cập
         // nhật
         personnelEventService.broadcast(tenant.getId(), "personnel-updated");
 
         // 6. Cập nhật trạng thái Invitation
-        invitation.setStatus("ACCEPTED");
-        invitation.setAcceptedAt(LocalDateTime.now());
+        setFieldValue(invitation, "status", "ACCEPTED");
+        setFieldValue(invitation, "acceptedAt", LocalDateTime.now());
         invitationRepository.save(invitation);
         log.info("Invitation {} → ACCEPTED", code);
 
         // 7. Build response
         Map<String, Object> result = new HashMap<>();
-        result.put("tenantId", tenant.getId());
-        result.put("tenantName", tenant.getName());
-        result.put("role", invitation.getRole());
-        result.put("message", "Chào mừng bạn đã tham gia " + tenant.getName() + "!");
+        result.put("tenantId", getFieldValue(tenant, "id"));
+        result.put("tenantName", getString(tenant, "name"));
+        result.put("role", getFieldValue(invitation, "role"));
+        result.put("message", "Chào mừng bạn đã tham gia " + getString(tenant, "name") + "!");
         return result;
     }
 
@@ -148,7 +157,7 @@ public class InvitationService {
     public Map<String, Object> rejectInvitation(String code, String currentUserEmail) {
         Invitation invitation = findAndValidateInvitation(code);
 
-        invitation.setStatus("REJECTED");
+        setFieldValue(invitation, "status", "REJECTED");
         invitationRepository.save(invitation);
         log.info("User {} đã từ chối invitation {}", currentUserEmail, code);
 
@@ -191,5 +200,38 @@ public class InvitationService {
         }
 
         return invitation;
+    }
+
+    // ==========================================
+    // REFLECTION HELPERS (BYPASS LOMBOK)
+    // ==========================================
+
+    private Object getFieldValue(Object obj, String fieldName) {
+        if (obj == null)
+            return null;
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    private void setFieldValue(Object obj, String fieldName, Object value) {
+        if (obj == null)
+            return;
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(obj, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // Ignored silently for bypass
+        }
+    }
+
+    private String getString(Object obj, String fieldName) {
+        Object val = getFieldValue(obj, fieldName);
+        return val != null ? val.toString() : null;
     }
 }

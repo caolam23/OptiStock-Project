@@ -1,0 +1,205 @@
+/**
+ * Products.module.css — Container Layout Styles
+ * CSS Module: tách biệt hoàn toàn, không conflict với global styles
+ */
+
+/* ================ PAGE LAYOUT ================ */
+.pageContainer {
+    width: 100%;
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ================ PAGE HEADER ================ */
+.pageHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.pageHeaderLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pageTitle {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.pageSubtitle {
+    font-size: 14px;
+    color: #64748B;
+    font-weight: 500;
+    margin: 0;
+}
+
+.headerActions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ================ ACTION BUTTONS ================ */
+.actionButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.addProductBtn {
+    background: #2563EB;
+    color: white;
+}
+
+.addProductBtn:hover {
+    background: #1D4ED8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.bulkImportBtn {
+    background: #10B981;
+    color: white;
+}
+
+.bulkImportBtn:hover {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+/* ================ FILTER BAR ================ */
+.filterBarContainer {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.filterBar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+/* ================ CLEAR FILTERS BUTTON ================ */
+.clearFiltersBtn {
+    padding: 8px 16px;
+    background: #EF4444;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+}
+
+.clearFiltersBtn:hover {
+    background: #DC2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.clearFiltersBtn:active {
+    transform: scale(0.98);
+}
+
+/* ================ ACTIVE FILTERS INFO ================ */
+.activeFiltersInfo {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* ================ FILTER TAG ================ */
+.filterTag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 6px;
+    color: #0369A1;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* ================ SEARCH ACTIVE INFO ================ */
+.searchActiveInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #0369A1;
+    font-weight: 500;
+}
+
+.searchActiveInfo strong {
+    color: #0C4A6E;
+    font-weight: 700;
+}
+
+/* ================ CLEAR SEARCH BUTTON ================ */
+.clearSearchBtn {
+    padding: 4px 12px;
+    background: #FEE2E2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clearSearchBtn:hover {
+    background: #FCA5A5;
+    border-color: #F87171;
+    color: #991B1B;
+}
+
+/* ================ RESPONSIVE ================ */
+@media (max-width: 768px) {
+    .headerActions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .actionButton {
+        width: 100%;
+        justify-content: center;
+    }
+}
+

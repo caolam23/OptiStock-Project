@@ -89,7 +89,7 @@ public class StockVoucher {
     public int getTotalQuantityRequired() {
         if (items == null)
             return 0;
-        return items.stream().mapToInt(VoucherItem::getQuantityRequired).sum();
+        return items.stream().mapToInt(item -> item.getQuantityRequired() != null ? item.getQuantityRequired() : 0).sum();
     }
 
     /**
@@ -98,7 +98,7 @@ public class StockVoucher {
     public int getCompletedItems() {
         if (items == null)
             return 0;
-        return (int) items.stream().filter(VoucherItem::isCompleted).count();
+        return (int) items.stream().filter(item -> item.isCompleted()).count();
     }
 
     /**
@@ -107,7 +107,7 @@ public class StockVoucher {
     public boolean isAllItemsCompleted() {
         if (items == null || items.isEmpty())
             return false;
-        return items.stream().allMatch(VoucherItem::isCompleted);
+        return items.stream().allMatch(item -> item.isCompleted());
     }
 
     /**
@@ -118,7 +118,7 @@ public class StockVoucher {
         if (items == null || productCode == null)
             return null;
         return items.stream()
-                .filter(item -> productCode.equals(item.getProductCode()))
+                .filter(item -> productCode != null && productCode.equals(item.getProductCode()))
                 .findFirst()
                 .orElse(null);
     }

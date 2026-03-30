@@ -1,0 +1,5 @@
+Mã SKU,Tên sản phẩm,Danh mục,Giá bán,Giá vốn,Đơn vị,Tồn kho tối thiểu,Tồn kho tối đa,Nhà cung cấp
+SKU-001,Điện thoại,Điện tử,10000000,6000000,Cái,5,50,Samsung
+SKU-002,Nước ngọt,Đồ uống,15000,8000,Chai,20,100,CocaCola
+SKU-003,Gạo,Lương thực,20000,15000,kg,10,200,ABC
+SKU-004,Sữa chua,Thực phẩm,25000,,Hộp,15,150,Vinamilk

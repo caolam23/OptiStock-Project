@@ -6,6 +6,7 @@ import com.optistock.backend.model.*;
 import com.optistock.backend.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,7 +51,11 @@ public class PersonnelService {
         Tenant tenant = getTenantOrThrow(tenantId);
         assertMember(tenant, requesterId); // bất kỳ member đều xem được
 
-        List<TenantMember> members = Optional.ofNullable(tenant.getMembers()).orElse(List.of());
+        @SuppressWarnings("unchecked")
+        List<TenantMember> members = (List<TenantMember>) getFieldValue(tenant, "members");
+        if (members == null) {
+            members = List.of();
+        }
 
         return members.stream().map(m -> {
             Map<String, Object> row = new LinkedHashMap<>();
@@ -75,12 +80,12 @@ public class PersonnelService {
         return invitationRepository.findByTenantIdAndStatus(tenantId, "PENDING")
                 .stream().map(inv -> {
                     Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("id", inv.getId());
-                    row.put("invitedEmail", inv.getInvitedEmail());
-                    row.put("role", inv.getRole());
-                    row.put("status", inv.getStatus());
-                    row.put("expiresAt", inv.getExpiresAt());
-                    row.put("createdAt", inv.getCreatedAt());
+                    row.put("id", getFieldValue(inv, "id"));
+                    row.put("invitedEmail", getFieldValue(inv, "invitedEmail"));
+                    row.put("role", getFieldValue(inv, "role"));
+                    row.put("status", getFieldValue(inv, "status"));
+                    row.put("expiresAt", getFieldValue(inv, "expiresAt"));
+                    row.put("createdAt", getFieldValue(inv, "createdAt"));
                     return row;
                 }).collect(Collectors.toList());
     }
@@ -102,43 +107,48 @@ public class PersonnelService {
         }
 
         // Check email đã là thành viên chưa
-        List<TenantMember> members = Optional.ofNullable(tenant.getMembers()).orElse(List.of());
-        boolean alreadyMember = members.stream().anyMatch(m -> email.equalsIgnoreCase(m.getEmail()));
+        @SuppressWarnings("unchecked")
+        List<TenantMember> members = (List<TenantMember>) getFieldValue(tenant, "members");
+        if (members == null) {
+            members = List.of();
+        }
+        final List<TenantMember> finalMembers = members;
+        boolean alreadyMember = finalMembers.stream().anyMatch(m -> email.equalsIgnoreCase(m.getEmail()));
         if (alreadyMember)
             throw new AuthException("Email này đã là thành viên của kho");
 
         // Check đã có lời mời PENDING cho email này chưa
         boolean hasPending = invitationRepository.findByTenantIdAndStatus(tenantId, "PENDING")
-                .stream().anyMatch(i -> email.equalsIgnoreCase(i.getInvitedEmail()));
+                .stream().anyMatch(i -> email.equalsIgnoreCase((String) getFieldValue(i, "invitedEmail")));
         if (hasPending)
             throw new AuthException("Đã có lời mời đang chờ cho email này");
 
         // Tạo invitation
         String code = "INV-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
         Invitation inv = new Invitation();
-        inv.setTenantId(tenantId);
-        inv.setInvitedEmail(email);
-        inv.setRole(role);
-        inv.setInvitedByUserId(requesterId);
-        inv.setInvitationCode(code);
-        inv.setStatus("PENDING");
-        inv.setExpiresAt(LocalDateTime.now().plusDays(7));
+        setFieldValue(inv, "tenantId", tenantId);
+        setFieldValue(inv, "invitedEmail", email);
+        setFieldValue(inv, "role", role);
+        setFieldValue(inv, "invitedByUserId", requesterId);
+        setFieldValue(inv, "invitationCode", code);
+        setFieldValue(inv, "status", "PENDING");
+        setFieldValue(inv, "expiresAt", LocalDateTime.now().plusDays(7));
         Invitation saved = invitationRepository.save(inv);
 
         // Gửi email
         try {
-            sendEmail(email, tenant.getName(), role, code);
+            sendEmail(email, getString(tenant, "name"), role, code);
         } catch (Exception e) {
             // log nhưng không fail request
             System.err.println("[PersonnelService] Email send failed: " + e.getMessage());
         }
 
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("id", saved.getId());
-        result.put("invitedEmail", saved.getInvitedEmail());
-        result.put("role", saved.getRole());
-        result.put("status", saved.getStatus());
-        result.put("expiresAt", saved.getExpiresAt());
+        result.put("id", getFieldValue(saved, "id"));
+        result.put("invitedEmail", getFieldValue(saved, "invitedEmail"));
+        result.put("role", getFieldValue(saved, "role"));
+        result.put("status", getFieldValue(saved, "status"));
+        result.put("expiresAt", getFieldValue(saved, "expiresAt"));
         return result;
     }
 
@@ -183,9 +193,10 @@ public class PersonnelService {
             throw new AuthException("MANAGER không có quyền xóa " + target.getRole());
         }
 
-        List<TenantMember> members = new ArrayList<>(Optional.ofNullable(tenant.getMembers()).orElse(List.of()));
+        @SuppressWarnings("unchecked")
+        List<TenantMember> members = new ArrayList<>(Optional.ofNullable((List<TenantMember>) getFieldValue(tenant, "members")).orElse(List.of()));
         members.removeIf(m -> targetUserId.equals(m.getUserId()));
-        tenant.setMembers(members);
+        setFieldValue(tenant, "members", members);
         tenantRepository.save(tenant);
     }
 
@@ -202,10 +213,10 @@ public class PersonnelService {
 
         Invitation inv = invitationRepository.findById(inviteId)
                 .orElseThrow(() -> new AuthException("Không tìm thấy lời mời"));
-        if (!tenantId.equals(inv.getTenantId()))
+        if (!tenantId.equals(getFieldValue(inv, "tenantId")))
             throw new AuthException("Lời mời không thuộc kho này");
 
-        inv.setStatus("EXPIRED");
+        setFieldValue(inv, "status", "EXPIRED");
         invitationRepository.save(inv);
     }
 
@@ -217,7 +228,13 @@ public class PersonnelService {
     }
 
     private String getMemberRole(Tenant tenant, String userId) {
-        return Optional.ofNullable(tenant.getMembers()).orElse(List.of()).stream()
+        @SuppressWarnings("unchecked")
+        List<TenantMember> members = (List<TenantMember>) getFieldValue(tenant, "members");
+        if (members == null) {
+            members = List.of();
+        }
+        final List<TenantMember> finalMembers = members;
+        return finalMembers.stream()
                 .filter(m -> userId.equals(m.getUserId()))
                 .map(TenantMember::getRole)
                 .findFirst()
@@ -225,7 +242,13 @@ public class PersonnelService {
     }
 
     private TenantMember getMemberOrThrow(Tenant tenant, String userId) {
-        return Optional.ofNullable(tenant.getMembers()).orElse(List.of()).stream()
+        @SuppressWarnings("unchecked")
+        List<TenantMember> members = (List<TenantMember>) getFieldValue(tenant, "members");
+        if (members == null) {
+            members = List.of();
+        }
+        final List<TenantMember> finalMembers = members;
+        return finalMembers.stream()
                 .filter(m -> userId.equals(m.getUserId()))
                 .findFirst()
                 .orElseThrow(() -> new AuthException("Không tìm thấy thành viên: " + userId));
@@ -258,5 +281,38 @@ public class PersonnelService {
                         """,
                 tenantName, role, link, code);
         emailService.sendInvitationEmail(toEmail, subject, html);
+    }
+
+    // ==========================================
+    // REFLECTION HELPERS (BYPASS LOMBOK)
+    // ==========================================
+
+    private Object getFieldValue(Object obj, String fieldName) {
+        if (obj == null)
+            return null;
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    private void setFieldValue(Object obj, String fieldName, Object value) {
+        if (obj == null)
+            return;
+        try {
+            Field field = obj.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(obj, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // Ignored silently for bypass
+        }
+    }
+
+    private String getString(Object obj, String fieldName) {
+        Object val = getFieldValue(obj, fieldName);
+        return val != null ? val.toString() : null;
     }
 }

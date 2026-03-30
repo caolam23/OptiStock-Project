@@ -1,0 +1,290 @@
+/* ================ SHARED VARIABLES ================ */
+:root {
+    --primary: #F97316;
+    --bg-modal: #FFFFFF;
+    --bg-input: #F8FAFC;
+    --text-main: #0F172A;
+    --text-sub: #64748B;
+    --border: #E2E8F0;
+    --border-hover: #CBD5E1;
+    --radius-md: 8px;
+    --transition: all 0.2s ease-in-out;
+}
+
+/* ================ SECTION STYLING ================ */
+.sectionBox {
+    margin-bottom: 40px;
+}
+
+.sectionBox:last-child {
+    margin-bottom: 0;
+}
+
+.sectionTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+}
+
+.sectionTitleIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+/* ================ FORM GRID & GROUPS ================ */
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroupFullWidth {
+    grid-column: span 2;
+}
+
+.formLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.requiredToken {
+    color: #EF4444;
+}
+
+/* ================ FORM CONTROLS ================ */
+.formControl {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--text-main);
+    background-color: var(--bg-input);
+    transition: var(--transition);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.formControl::placeholder {
+    color: #94A3B8;
+}
+
+.formControl:hover:not([readonly]) {
+    border-color: var(--border-hover);
+}
+
+.formControl:focus {
+    outline: none;
+    background-color: var(--bg-modal);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+.formControl[readonly] {
+    background-color: #F1F5F9;
+    color: var(--text-sub);
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
+.formControl.antInput,
+.formControl.antSelect {
+    padding: 8px 12px;
+}
+
+/* ================ RADIO CARDS ================ */
+.radioGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.radioCard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg-modal);
+    user-select: none;
+}
+
+.radioCard input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    cursor: pointer;
+}
+
+.radioHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.radioTitle {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.radioDesc {
+    font-size: 13px;
+    color: var(--text-sub);
+}
+
+.radioCircle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border-hover);
+    position: relative;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.radioCircle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.radioCard:hover {
+    border-color: var(--border-hover);
+}
+
+.radioCard input:checked ~ .radioHeader .radioCircle {
+    border-color: var(--primary);
+}
+
+.radioCard input:checked ~ .radioHeader .radioCircle::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.radioCard input:checked {
+    border-color: var(--primary);
+}
+
+.radioCardChecked {
+    border-color: var(--primary);
+    background-color: #FFF7ED;
+}
+
+/* ================ FORM ITEMS ================ */
+.formItemWrapper {
+    margin-bottom: 0;
+}
+
+.selectWrapper :global(.ant-select) {
+    width: 100%;
+}
+
+.selectWrapper :global(.ant-select-selector) {
+    padding: 8px 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--bg-input) !important;
+    transition: var(--transition) !important;
+}
+
+.selectWrapper :global(.ant-select-selector:hover) {
+    border-color: var(--border-hover) !important;
+}
+
+.selectWrapper :global(.ant-select-focused .ant-select-selector) {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15) !important;
+}
+
+.inputWrapper :global(.ant-input),
+.inputWrapper :global(.ant-input-number) {
+    padding: 8px 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--bg-input) !important;
+    transition: var(--transition) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-size: 14px !important;
+    color: var(--text-main) !important;
+}
+
+.inputWrapper :global(.ant-input:hover),
+.inputWrapper :global(.ant-input-number:hover) {
+    border-color: var(--border-hover) !important;
+}
+
+.inputWrapper :global(.ant-input:focus),
+.inputWrapper :global(.ant-input-number-focused) {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15) !important;
+}
+
+.textareWrapper :global(.ant-input) {
+    padding: 12px 16px !important;
+    min-height: 90px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--bg-input) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-size: 14px !important;
+    color: var(--text-main) !important;
+}
+
+/* ================ RESPONSIVE DESIGN ================ */
+@media (max-width: 768px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 16px 20px;
+    }
+
+    .formGroupFullWidth {
+        grid-column: span 1;
+    }
+
+    .radioGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .sectionTitle {
+        font-size: 15px;
+    }
+
+    .formLabel {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sectionBox {
+        margin-bottom: 32px;
+    }
+
+    .formControl {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+}

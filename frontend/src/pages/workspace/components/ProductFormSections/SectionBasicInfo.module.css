@@ -1,0 +1,185 @@
+/* ================ SHARED VARIABLES ================ */
+:root {
+    --primary: #F97316;
+    --primary-hover: #EA580C;
+    --primary-light: #FFF7ED;
+    --primary-ring: rgba(249, 115, 22, 0.15);
+    
+    --bg-modal: #FFFFFF;
+    --bg-input: #F8FAFC;
+    --bg-readonly: #F1F5F9;
+    
+    --text-main: #0F172A;
+    --text-sub: #64748B;
+    
+    --border: #E2E8F0;
+    --border-hover: #CBD5E1;
+    
+    --radius-md: 8px;
+    --transition: all 0.2s ease-in-out;
+}
+
+/* ================ SECTION STYLING ================ */
+.sectionBox {
+    margin-bottom: 40px;
+}
+
+.sectionBox:last-child {
+    margin-bottom: 0;
+}
+
+.sectionTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+}
+
+.sectionTitleIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+/* ================ FORM GRID & GROUPS ================ */
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.requiredToken {
+    color: #EF4444;
+}
+
+/* ================ FORM CONTROLS ================ */
+.formControl {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--text-main);
+    background-color: var(--bg-input);
+    transition: var(--transition);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.formControl::placeholder {
+    color: #94A3B8;
+}
+
+.formControl:hover:not([readonly]) {
+    border-color: var(--border-hover);
+}
+
+.formControl:focus {
+    outline: none;
+    background-color: var(--bg-modal);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-ring);
+}
+
+.formControl[readonly] {
+    background-color: var(--bg-readonly);
+    color: var(--text-sub);
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
+.formControl.antInput,
+.formControl.antSelect {
+    padding: 8px 12px;
+}
+
+/* ================ SELECT & INPUT WRAPPERS ================ */
+.formItemWrapper {
+    margin-bottom: 0;
+}
+
+.selectWrapper :global(.ant-select) {
+    width: 100%;
+}
+
+.selectWrapper :global(.ant-select-selector) {
+    padding: 8px 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--bg-input) !important;
+    transition: var(--transition) !important;
+}
+
+.selectWrapper :global(.ant-select-selector:hover) {
+    border-color: var(--border-hover) !important;
+}
+
+.selectWrapper :global(.ant-select-focused .ant-select-selector) {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px var(--primary-ring) !important;
+}
+
+.inputWrapper :global(.ant-input),
+.inputWrapper :global(.ant-input-number) {
+    padding: 8px 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--bg-input) !important;
+    transition: var(--transition) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-size: 14px !important;
+    color: var(--text-main) !important;
+}
+
+.inputWrapper :global(.ant-input:hover),
+.inputWrapper :global(.ant-input-number:hover) {
+    border-color: var(--border-hover) !important;
+}
+
+.inputWrapper :global(.ant-input:focus),
+.inputWrapper :global(.ant-input-number-focused) {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px var(--primary-ring) !important;
+}
+
+/* ================ RESPONSIVE DESIGN ================ */
+@media (max-width: 768px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+        gap: 16px 20px;
+    }
+
+    .sectionTitle {
+        font-size: 15px;
+    }
+
+    .formLabel {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sectionBox {
+        margin-bottom: 32px;
+    }
+
+    .formControl {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+}

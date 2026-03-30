@@ -1,0 +1,228 @@
+/* ================ BIẾN MÀU SẮC (THEME VÀNG CAM - TRẮNG) ================ */
+.modalContainer {
+    --primary-color: #F97316;
+    --primary-hover: #EA580C;
+    --text-main: #111827;
+    --text-sub: #4B5563;
+    --border-color: #D1D5DB;
+    --bg-white: #FFFFFF;
+    --danger: #EF4444;
+    --radius: 8px;
+
+    background: var(--bg-white);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+/* ================ HEADER ================ */
+.modalHeader {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-white);
+}
+
+.modalTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    color: #9CA3AF;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.closeBtn:hover {
+    color: var(--primary-color);
+}
+
+/* ================ BODY ================ */
+.modalBody {
+    padding: 24px;
+    overflow-y: auto;
+    background-color: var(--bg-white);
+}
+
+/* Custom Scrollbar cho Body */
+.modalBody::-webkit-scrollbar {
+    width: 6px;
+}
+.modalBody::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Tittle từng nhóm */
+.sectionTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.sectionTitle::before {
+    content: '';
+    display: inline-block;
+    width: 4px; 
+    height: 16px;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.divider {
+    height: 1px;
+    background-color: #E5E7EB;
+    margin: 24px 0;
+}
+
+/* ================ FORM ELEMENTS ================ */
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin-bottom: 16px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.formGrid .formGroup {
+    margin-bottom: 0;
+}
+
+.formLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.required {
+    color: var(--danger);
+    margin-left: 2px;
+}
+
+/* Ghi đè margin mặc định của Ant Design Form.Item */
+.formGroup :global(.ant-form-item) {
+    margin-bottom: 0;
+}
+
+/* Chỉnh style lỗi validation của Antd cho giống HTML */
+.formGroup :global(.ant-form-item-explain-error) {
+    font-size: 13px;
+    margin-top: 4px;
+    color: var(--danger);
+}
+
+/* ================ CUSTOM ANT DESIGN INPUTS ================ */
+.formControl,
+.formControlSelect,
+.formControlNumber,
+.formControlTextarea {
+    width: 100% !important;
+}
+
+/* Bắt các class bên trong Antd để đồng bộ với theme cam */
+:global(.ant-input),
+:global(.ant-input-number),
+:global(.ant-select-selector) {
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius) !important;
+    font-size: 14px !important;
+    color: var(--text-main) !important;
+    box-shadow: none !important;
+    transition: all 0.2s !important;
+}
+
+:global(.ant-input),
+:global(.ant-input-number) {
+    padding: 8px 12px !important;
+}
+
+:global(.ant-select-selector) {
+    height: 40px !important;
+    padding: 4px 12px !important;
+}
+
+:global(.ant-input-number-input) {
+    padding: 0 !important; /* Xoá padding trong vì wrapper đã có */
+}
+
+/* Trạng thái FOCUS */
+:global(.ant-input:focus),
+:global(.ant-input:focus-within),
+:global(.ant-input-number:focus),
+:global(.ant-input-number-focused),
+:global(.ant-select-focused .ant-select-selector) {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15) !important;
+    outline: none !important;
+}
+
+/* ================ FOOTER ================ */
+.modalFooter {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background-color: var(--bg-white);
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btnDefault {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    color: var(--text-sub);
+}
+
+.btnDefault:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btnPrimary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.btnPrimary:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+}
+
+/* ================ RESPONSIVE ================ */
+@media (max-width: 600px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+}

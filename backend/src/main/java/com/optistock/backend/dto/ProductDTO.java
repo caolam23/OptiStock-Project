@@ -1,31 +1,54 @@
 package com.optistock.backend.dto;
 
+import com.optistock.backend.enums.TrackingType;
+import com.optistock.backend.enums.ActivationStatus;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
- * ProductDTO: DTO cho Product
+ * ProductDTO: Data Transfer Object cho Product (Electronics & Gadgets)
+ * 
+ * Hỗ trợ mapping với Entity đầy đủ các trường cho quản lý kho IMEI, 
+ * phụ kiện và dịch vụ.
  */
 public class ProductDTO {
+    // ==================== THÔNG TIN CƠ BẢN ====================
     private String id;
     private String tenantId;
-    private String productCode;
-    private String productName;
-    private String category;
-    private String description;
-    private Double price;
-    private Double cost;
-    private String mainUnit;
-    private Integer currentStock;
-    private Integer minStock;
-    private Integer maxStock;
-    private String supplier;
+    private String productCode;              // SKU
+    private String productName;              // Tên sản phẩm
+    private String brand;                    // Hãng
+    private String category;                 // Danh mục
+    private String description;              // Mô tả
+    private String condition;                // Tình trạng: New, LikeNew, Good, Refurbished, Display
+    private Double price;                    // Giá bán
+    private Double cost;                     // Giá vốn
+    private String mainUnit;                 // Đơn vị
+    
+    // ==================== QUẢN LÝ TỒN KHO ====================
+    private TrackingType trackingType;       // Loại quản lý
+    private Integer currentStock;            // Tồn kho hiện tại
+    private Integer minStock;                // Tồn kho tối thiểu
+    private Integer maxStock;                // Tồn kho tối đa
+    private String supplier;                 // Nhà cung cấp
+    
+    // ==================== PHÂN LOẠI NGÀNH HÀNG ====================
+    private String industryType;             // "ELECTRONICS" hoặc "GROCERY"
+    
+    // ==================== ELECTRONICS CHUYÊN BIỆT ====================
+    private String originCode;               // Mã vùng (VN/A, LL/A...)
+    private ActivationStatus activationStatus;      // Trạng thái kích hoạt
+    private Map<String, Object> specifications;     // Thông số kỹ thuật động
+    private Integer warrantyMonths;         // Thời gian bảo hành (tháng)
+    
+    // ==================== TRẠNG THÁI ====================
     private boolean active;
     private List<String> unitConversionIds;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Constructors
+    // ==================== CONSTRUCTORS ====================
     public ProductDTO() {
     }
 
@@ -36,7 +59,18 @@ public class ProductDTO {
         this.mainUnit = mainUnit;
     }
 
-    // Getters & Setters
+    public ProductDTO(String productCode, String productName, String brand, String category, 
+                     Double price, TrackingType trackingType) {
+        this.productCode = productCode;
+        this.productName = productName;
+        this.brand = brand;
+        this.category = category;
+        this.price = price;
+        this.trackingType = trackingType;
+    }
+
+    // ==================== GETTERS & SETTERS ====================
+    
     public String getId() {
         return id;
     }
@@ -69,6 +103,14 @@ public class ProductDTO {
         this.productName = productName;
     }
 
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
     public String getCategory() {
         return category;
     }
@@ -83,6 +125,14 @@ public class ProductDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
     }
 
     public Double getPrice() {
@@ -107,6 +157,14 @@ public class ProductDTO {
 
     public void setMainUnit(String mainUnit) {
         this.mainUnit = mainUnit;
+    }
+
+    public TrackingType getTrackingType() {
+        return trackingType;
+    }
+
+    public void setTrackingType(TrackingType trackingType) {
+        this.trackingType = trackingType;
     }
 
     public Integer getCurrentStock() {
@@ -141,6 +199,38 @@ public class ProductDTO {
         this.supplier = supplier;
     }
 
+    public String getOriginCode() {
+        return originCode;
+    }
+
+    public void setOriginCode(String originCode) {
+        this.originCode = originCode;
+    }
+
+    public ActivationStatus getActivationStatus() {
+        return activationStatus;
+    }
+
+    public void setActivationStatus(ActivationStatus activationStatus) {
+        this.activationStatus = activationStatus;
+    }
+
+    public Map<String, Object> getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(Map<String, Object> specifications) {
+        this.specifications = specifications;
+    }
+
+    public Integer getWarrantyMonths() {
+        return warrantyMonths;
+    }
+
+    public void setWarrantyMonths(Integer warrantyMonths) {
+        this.warrantyMonths = warrantyMonths;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -172,103 +262,12 @@ public class ProductDTO {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-}
 
-/**
- * CreateProductRequest: Request tạo Product mới
- */
-class CreateProductRequest {
-    private String productCode;
-    private String productName;
-    private String category;
-    private String description;
-    private Double price;
-    private Double cost;
-    private String mainUnit;
-    private Integer minStock;
-    private Integer maxStock;
-    private String supplier;
-
-    public CreateProductRequest() {
+    public String getIndustryType() {
+        return industryType;
     }
 
-    public String getProductCode() {
-        return productCode;
-    }
-
-    public void setProductCode(String productCode) {
-        this.productCode = productCode;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
-    }
-
-    public Double getCost() {
-        return cost;
-    }
-
-    public void setCost(Double cost) {
-        this.cost = cost;
-    }
-
-    public String getMainUnit() {
-        return mainUnit;
-    }
-
-    public void setMainUnit(String mainUnit) {
-        this.mainUnit = mainUnit;
-    }
-
-    public Integer getMinStock() {
-        return minStock;
-    }
-
-    public void setMinStock(Integer minStock) {
-        this.minStock = minStock;
-    }
-
-    public Integer getMaxStock() {
-        return maxStock;
-    }
-
-    public void setMaxStock(Integer maxStock) {
-        this.maxStock = maxStock;
-    }
-
-    public String getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(String supplier) {
-        this.supplier = supplier;
+    public void setIndustryType(String industryType) {
+        this.industryType = industryType;
     }
 }

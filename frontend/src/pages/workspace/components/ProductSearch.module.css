@@ -1,0 +1,246 @@
+/* ProductSearch.module.css — Styling cho thanh tìm kiếm sản phẩm thông minh */
+
+/* ================ SEARCH CONTAINER ================ */
+.searchContainer {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* ================ AUTO COMPLETE INPUT ================ */
+.autoComplete {
+    width: 100%;
+}
+
+.autoComplete :global(.ant-select-selector) {
+    border-radius: 8px !important;
+    border: 2px solid #FCA311 !important;
+    background: #FFFFFF !important;
+    transition: all 0.2s ease !important;
+    padding: 4px 12px !important;
+    height: 44px !important;
+    display: flex;
+    align-items: center;
+    box-shadow: none !important;
+}
+
+.autoComplete :global(.ant-select-selector:hover) {
+    border-color: #FB8500 !important;
+    box-shadow: none !important;
+}
+
+.autoComplete :global(.ant-select-selector:focus),
+.autoComplete :global(.ant-select-focused .ant-select-selector),
+.autoComplete :global(.ant-select-selector:focus-within) {
+    border-color: #FB8500 !important;
+    box-shadow: none !important; /* Xóa bóng mờ khi focus vào Select */
+    outline: none !important;
+}
+
+/* Override Ant Design default focus styles */
+.autoComplete :global(.ant-select) {
+    outline: none !important;
+}
+
+.autoComplete :global(.ant-select-focused .ant-select-selector) {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.autoComplete :global(.ant-select-focused) {
+    outline: none !important;
+}
+
+/* ================ SEARCH INPUT (Khu vực đã sửa lỗi viền mờ) ================ */
+.searchInput {
+    border: none !important;
+    background: transparent !important;
+    font-size: 14px !important;
+    box-shadow: none !important;
+}
+
+.searchInput :global(.ant-input) {
+    color: #1F2937 !important;
+    font-weight: 500;
+}
+
+.searchInput :global(.ant-input::placeholder) {
+    color: #999999 !important;
+    font-weight: 400 !important;
+}
+
+/* Xóa hoàn toàn viền mờ (box-shadow) của Ant Design khi ấn vào Input có chứa Icon */
+.searchInput:global(.ant-input-affix-wrapper-focused),
+.searchInput:global(.ant-input-affix-wrapper:focus),
+.searchInput:global(.ant-input-affix-wrapper:focus-within),
+.searchInput :global(.ant-input:focus) {
+    box-shadow: none !important;
+    outline: none !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.searchIcon {
+    color: #FCA311 !important;
+    font-size: 16px !important;
+    margin-right: 8px !important;
+    font-weight: 600;
+}
+
+/* ================ HIDE BACKDROP OVERLAY ================ */
+.autoComplete :global(.ant-select-dropdown) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Hide backdrop/overlay */
+:global(.ant-select-dropdown-placement-bottomLeft)::before,
+:global(.ant-select-dropdown-placement-topLeft)::before {
+    display: none !important;
+}
+
+:global(.rc-virtual-list) {
+    background: #FFFFFF !important;
+}
+
+/* ================ AUTOCOMPLETE DROPDOWN ================ */
+.autoCompleteDropdown {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #FCA311 !important;
+}
+
+.autoCompleteDropdown :global(.ant-select-item) {
+    padding: 8px 12px !important;
+    margin: 0 8px !important;
+    border-radius: 6px !important;
+    transition: background-color 0.15s ease !important;
+    color: #1F2937 !important;
+}
+
+.autoCompleteDropdown :global(.ant-select-item:hover) {
+    background-color: #FFF8F0 !important;
+}
+
+.autoCompleteDropdown :global(.ant-select-item-option-selected) {
+    background-color: #FFF3E0 !important;
+    border-left: 3px solid #FCA311 !important;
+}
+
+.autoCompleteDropdown :global(.ant-select-item-option-selected:hover) {
+    background-color: #FFE8CC !important;
+}
+
+/* ================ OPTION ITEM ================ */
+.optionContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 2px 0;
+}
+
+.optionContent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    font-size: 14px;
+    flex-wrap: wrap;
+    color: #1F2937;
+}
+
+/* Match theo mã SKU (Code) */
+.codeHighlight {
+    font-family: 'Courier New', monospace;
+    color: #FB8500;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.3px;
+    padding: 4px 10px;
+    background-color: #FFF3E0;
+    border-radius: 4px;
+    border-left: 3px solid #FCA311;
+}
+
+/* Match theo tên sản phẩm (Name) */
+.nameHighlight {
+    color: #1F2937;
+    font-weight: 600;
+    flex: 1;
+    word-break: break-word;
+}
+
+/* SKU code displayed alongside name */
+.skuCode {
+    color: #999999;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ================ CATEGORY TAG ================ */
+.categoryTag {
+    margin: 0 4px;
+    font-size: 11px;
+    padding: 3px 10px;
+    height: auto;
+    line-height: 1.2;
+    background-color: #FCA311 !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    font-weight: 600;
+}
+
+/* ================ NO RESULTS MESSAGE ================ */
+.noResults {
+    padding: 16px 12px;
+    text-align: center;
+    color: #999999;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* ================ RESPONSIVE STYLES ================ */
+@media (max-width: 1024px) {
+    .searchContainer {
+        max-width: 100%;
+    }
+
+    .optionContent {
+        flex-wrap: wrap;
+    }
+
+    .nameHighlight {
+        flex-basis: 100%;
+    }
+
+    .categoryTag {
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+}
+
+/* ================ HIDE BACKDROP OVERLAY ================ */
+/* Hide the modal/backdrop overlay when dropdown opens */
+:global(.ant-select-dropdown-mask) {
+    display: none !important;
+    opacity: 0 !important;
+}
+
+/* Hide any backdrop elements */
+:global(.ant-select-dropdown)::before,
+:global(.ant-select-dropdown)::after {
+    display: none !important;
+}
+
+/* Ensure dropdown doesn't dim background */
+:global(.ant-select-dropdown-wrapper) {
+    opacity: 1 !important;
+}
+
+/* Hide overlay mask for Ant Design */
+:global(.rc-dialog-mask) {
+    display: none !important;
+}
+
+:global(.rc-dialog) {
+    opacity: 1 !important;
+}

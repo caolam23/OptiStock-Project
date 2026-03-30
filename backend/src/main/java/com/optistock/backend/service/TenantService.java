@@ -62,6 +62,26 @@ public class TenantService {
     }
 
     /**
+     * Get tenant entity (raw object) by tenantId - used for fetching full object with all properties
+     * Supports both MongoDB ID (@Id) and custom tenantId field
+     */
+    public Tenant getTenantEntityByTenantId(String tenantIdOrMongoId) {
+        // Thử tìm theo custom tenantId trước
+        Optional<Tenant> byCustomId = tenantRepository.findByTenantId(tenantIdOrMongoId);
+        if (byCustomId.isPresent()) {
+            return byCustomId.get();
+        }
+        
+        // Nếu không tìm thấy, thử tìm theo MongoDB ID (@Id)
+        Optional<Tenant> byMongoId = tenantRepository.findById(tenantIdOrMongoId);
+        if (byMongoId.isPresent()) {
+            return byMongoId.get();
+        }
+        
+        throw new AuthException("Không tìm thấy công ty");
+    }
+
+    /**
      * Get all tenants (for Super Admin)
      */
     public List<TenantDTO> getAllTenants() {

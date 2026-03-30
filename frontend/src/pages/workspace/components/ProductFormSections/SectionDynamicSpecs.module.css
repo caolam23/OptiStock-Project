@@ -1,0 +1,228 @@
+/* ================ SHARED VARIABLES ================ */
+:root {
+    --primary: #F97316;
+    --bg-input: #F8FAFC;
+    --text-main: #0F172A;
+    --text-sub: #64748B;
+    --border: #E2E8F0;
+    --radius-md: 8px;
+    --primary-light: #FFF7ED;
+    --transition: all 0.2s ease-in-out;
+}
+
+/* ================ SECTION STYLING ================ */
+.sectionBox {
+    margin-bottom: 40px;
+}
+
+.sectionBox:last-child {
+    margin-bottom: 0;
+}
+
+.sectionTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+}
+
+.sectionTitleIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+/* ================ DYNAMIC SPECS RENDERING ================ */
+.specRow {
+    display: grid;
+    grid-template-columns: 1fr 2.5fr;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: center;
+}
+
+.specLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* FIX UI: Label Input (standalone, NOT inside Form.Item) */
+.labelInput {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px dashed #CBD5E1;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-sub);
+    background-color: #F1F5F9;
+    cursor: not-allowed;
+    transition: var(--transition);
+}
+
+.labelInput:hover {
+    border-color: #9CA3AF;
+}
+
+/* Value Input Wrapper - container for the input control */
+.valueInputWrapper {
+    width: 100%;
+}
+
+/* ================ FORM CONTROLS FOR SPECS ================ */
+.formControl {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--text-main);
+    background-color: var(--bg-input);
+    transition: var(--transition);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.formControl::placeholder {
+    color: #94A3B8;
+}
+
+.formControl:hover:not([readonly]) {
+    border-color: #CBD5E1;
+}
+
+.formControl:focus {
+    outline: none;
+    background-color: #FFFFFF;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+.formControl[readonly] {
+    background-color: #F1F5F9;
+    color: var(--text-sub);
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
+.formItemWrapper {
+    margin-bottom: 0;
+}
+
+.selectWrapper :global(.ant-select) {
+    width: 100%;
+}
+
+.selectWrapper :global(.ant-select-selector) {
+    padding: 8px 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--bg-input) !important;
+    transition: var(--transition) !important;
+}
+
+.selectWrapper :global(.ant-select-selector:hover) {
+    border-color: #CBD5E1 !important;
+}
+
+.selectWrapper :global(.ant-select-focused .ant-select-selector) {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15) !important;
+}
+
+/* ================ ALERT BOX ================ */
+.alertBox {
+    background-color: var(--primary-light);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.alertIcon {
+    color: var(--primary);
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.alertContent {
+    flex: 1;
+}
+
+.alertContent h4 {
+    color: #9A3412;
+    font-size: 14px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    margin: 0;
+    margin-bottom: 4px;
+}
+
+.alertContent p {
+    color: #C2410C;
+    font-size: 13px;
+    margin: 0;
+}
+
+.alertCloseBtn {
+    background: none;
+    border: none;
+    color: #C2410C;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.alertCloseBtn:hover {
+    color: #9A3412;
+}
+
+/* ================ RESPONSIVE DESIGN ================ */
+@media (max-width: 768px) {
+    .specRow {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .sectionTitle {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sectionBox {
+        margin-bottom: 32px;
+    }
+
+    .formControl {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+}

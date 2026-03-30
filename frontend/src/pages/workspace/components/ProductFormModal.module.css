@@ -1,0 +1,239 @@
+/* ================ BIẾN MÀU SẮC CAO CẤP ================ */
+:root {
+    --primary: #F97316;
+    --primary-hover: #EA580C;
+    --primary-light: #FFF7ED;
+    --primary-ring: rgba(249, 115, 22, 0.15);
+    
+    --bg-body: #E2E8F0;
+    --bg-modal: #FFFFFF;
+    --bg-input: #F8FAFC;
+    --bg-readonly: #F1F5F9;
+    
+    --text-main: #0F172A;
+    --text-sub: #64748B;
+    
+    --border: #E2E8F0;
+    --border-hover: #CBD5E1;
+    
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    --shadow-btn: 0 4px 6px -1px rgba(249, 115, 22, 0.2);
+    --transition: all 0.2s ease-in-out;
+}
+
+/* ================ MODAL OVERLAY & CONTAINER ================ */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeInOverlay 0.2s ease-out;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal {
+    background: var(--bg-modal);
+    width: 100%;
+    max-width: 900px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-modal);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ================ MODAL HEADER ================ */
+.modalHeader {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-modal);
+    z-index: 10;
+}
+
+.modalTitle {
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-main);
+}
+
+.modalTitleIcon {
+    color: var(--primary);
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.closeBtn {
+    background: var(--bg-input);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0;
+}
+
+.closeBtn:hover {
+    background: #FEE2E2;
+    color: #EF4444;
+}
+
+/* ================ MODAL BODY & SCROLLBAR ================ */
+.modalBody {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modalBody::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modalBody::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+    background-color: #CBD5E1;
+    border-radius: 10px;
+}
+
+.modalBody::-webkit-scrollbar-thumb:hover {
+    background-color: #94A3B8;
+}
+
+/* ================ FOOTER ================ */
+.modalFooter {
+    padding: 20px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #F8FAFC;
+}
+
+.btn {
+    padding: 10px 24px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 40px;
+}
+
+.btnDefault {
+    background-color: var(--bg-modal);
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+}
+
+.btnDefault:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
+
+.btnPrimary {
+    background-color: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-btn);
+}
+
+.btnPrimary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 6px 10px -1px rgba(249, 115, 22, 0.3);
+    transform: translateY(-1px);
+}
+
+.btnPrimary:active {
+    transform: translateY(0);
+}
+
+.btnIcon {
+    width: 18px;
+    height: 18px;
+}
+
+/* ================ RESPONSIVE DESIGN ================ */
+@media (max-width: 768px) {
+    .modal {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+
+    .modalHeader {
+        padding: 20px;
+    }
+
+    .modalBody {
+        padding: 20px;
+    }
+
+    .modalFooter {
+        padding: 16px 20px;
+        flex-direction: column-reverse;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .modalHeader,
+    .modalBody,
+    .modalFooter {
+        padding: 16px;
+    }
+
+    .modalTitle {
+        font-size: 18px;
+    }
+}

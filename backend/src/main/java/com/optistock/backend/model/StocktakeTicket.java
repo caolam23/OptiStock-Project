@@ -104,7 +104,7 @@ public class StocktakeTicket {
     public int getDiscrepancyCount() {
         if (items == null)
             return 0;
-        return (int) items.stream().filter(StocktakeItem::isHasDiscrepancy).count();
+        return (int) items.stream().filter(item -> item.isHasDiscrepancy()).count();
     }
 
     /**
@@ -113,7 +113,7 @@ public class StocktakeTicket {
      */
     public void calculateAllDiscrepancies() {
         if (items != null) {
-            items.forEach(StocktakeItem::calculateDiscrepancy);
+            items.forEach(item -> item.calculateDiscrepancy());
         }
     }
 }
