@@ -217,6 +217,39 @@
     border-color: #F97316;
 }
 
+/* Select dropdown styling */
+.input[type="select"],
+select {
+    padding: 9px 12px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #0F172A;
+    background: #FFFFFF;
+    outline: none;
+    flex: 1;
+    transition: border 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+select:focus {
+    border-color: #F97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+select:disabled {
+    background: #F8FAFC;
+    color: #94A3B8;
+    cursor: not-allowed;
+}
+
+select option {
+    color: #0F172A;
+    background: #FFFFFF;
+}
+
 .textarea {
     padding: 9px 12px;
     border: 1.5px solid #E2E8F0;

@@ -103,13 +103,20 @@ public class ProductController {
 
             // ========== LOGIC: Nếu có cả limit (legacy support) thì dùng logic cũ ==========
             if (limit != null && limit > 0) {
-                log.info("Sử dụng legacy mode với limit: {}", limit);
+                log.info("Sử dụng legacy mode với limit: {}, industryType: {}", limit, industryType);
                 java.util.List<Product> products;
                 if (search != null && !search.trim().isEmpty()) {
                     products = productService.searchProducts(tenantId, search, limit);
                     log.info("Tìm kiếm thành công {} sản phẩm", products.size());
                 } else {
                     products = productService.getProductsByTenantId(tenantId);
+                    // 🔥 Filter by industryType if provided
+                    if (industryType != null && !industryType.trim().isEmpty()) {
+                        products = products.stream()
+                            .filter(p -> industryType.equals(p.getIndustryType()))
+                            .collect(java.util.stream.Collectors.toList());
+                        log.info("Lọc theo industryType '{}': {} sản phẩm", industryType, products.size());
+                    }
                     if (limit != null && limit > 0 && products.size() > limit) {
                         products = products.subList(0, limit);
                     }

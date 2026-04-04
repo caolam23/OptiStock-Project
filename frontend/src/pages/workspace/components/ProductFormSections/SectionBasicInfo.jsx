@@ -20,6 +20,15 @@ const SectionBasicInfo = ({
     // 🔥 TRẠNG THÁI CHUNG: Lưu trữ Nhóm hàng con cho ngành GROCERY
     const [subCategory, setSubCategory] = useState(null);
 
+    React.useEffect(() => {
+        if (mode === 'edit') {
+            const formSubCategory = form.getFieldValue('subCategory');
+            if (formSubCategory) {
+                setSubCategory(formSubCategory);
+            }
+        }
+    }, [mode, selectedCategory, form]);
+
     // 🎯 Hàm bọc: Khi người dùng đổi Danh mục
     const onMainCategoryChange = (val) => {
         setSubCategory(null); // Xóa trắng nhóm hàng con
@@ -258,10 +267,16 @@ const SectionBasicInfo = ({
                 {/* PHÂN LOẠI CHI TIẾT (Đẩy lên trước Hãng sản xuất để User chọn dễ hơn) */}
                 {industryType === 'GROCERY' && isCascadingCategory && (
                     <div className={styles.formGroup}>
-                        <Form.Item label={<span>Phân loại chi tiết<span className={styles.requiredToken}> *</span></span>} name="subCategory" rules={[{ required: true, message: 'Vui lòng chọn phân loại chi tiết' }]} className={styles.formItemWrapper}>
+                        <Form.Item 
+                            label={<span>Phân loại chi tiết<span className={styles.requiredToken}> *</span></span>} 
+                            name="subCategory" 
+                            rules={[{ required: true, message: 'Vui lòng chọn phân loại chi tiết' }]} 
+                            className={styles.formItemWrapper}
+                        >
                             <Select
                                 placeholder="Chọn nhóm hàng chi tiết..."
                                 allowClear
+                                disabled={mode === 'edit'}  // 🔥 Chỉ hiển thị, không cho sửa khi edit
                                 onChange={onSubCategoryChange}
                                 options={getSubCategoryOptions()}
                                 className={styles.selectWrapper}
@@ -272,12 +287,24 @@ const SectionBasicInfo = ({
 
                 {/* 3. HÃNG SẢN XUẤT */}
                 <div className={styles.formGroup}>
-                    <Form.Item label={<span>Hãng sản xuất<span className={styles.requiredToken}> *</span></span>} name="brand" rules={[{ required: true, message: 'Vui lòng chọn hoặc nhập hãng' }]} className={styles.formItemWrapper}>
+                    <Form.Item 
+                        label={
+                            <span>
+                                Hãng sản xuất
+                                {industryType === 'ELECTRONICS' && <span className={styles.requiredToken}> *</span>}
+                                {industryType === 'GROCERY' && <span style={{ fontSize: '12px', color: '#999' }}>(Tùy chọn)</span>}
+                            </span>
+                        } 
+                        name="brand" 
+                        // For ELECTRONICS: brand is REQUIRED | For GROCERY: brand is OPTIONAL
+                        rules={industryType === 'ELECTRONICS' ? [{ required: true, message: 'Vui lòng chọn hoặc nhập hãng' }] : []}
+                        className={styles.formItemWrapper}
+                    >
                         <Select
                             placeholder={selectedCategory ? 'Chọn hãng' : 'Chọn danh mục trước'}
                             allowClear
                             showSearch
-                            disabled={!selectedCategory || (industryType === 'GROCERY' && isCascadingCategory && !subCategory) || mode === 'edit'}
+                            disabled={mode === 'edit' ? true : (!selectedCategory || (industryType === 'GROCERY' && isCascadingCategory && !subCategory))}  // 🔥 Khi edit: disabled | Khi create: theo logic
                             optionFilterProp="label"
                             onChange={handleBrandChange}
                             options={getBrandsForSelectedCategory()}

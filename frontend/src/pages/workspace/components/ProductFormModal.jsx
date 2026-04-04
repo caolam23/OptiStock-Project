@@ -136,18 +136,24 @@ const ProductFormModal = ({
     // ==================== INIT & RESET ====================
     useEffect(() => {
         if (visible && mode === 'edit' && productData) {
-            // Edit Mode: Load dữ liệu sản phẩm
-            // Normalize brand code từ backend
-            const normalizedBrand = normalizeBrandCode(productData.brand, productData.category);
+            
+            // 🔥 FIX 1: Chỉ dùng normalizeBrandCode cho ngành ĐIỆN TỬ.
+            // Ngành TẠP HÓA thì lấy thẳng tên gốc từ Database (VD: "MeatDeli").
+            let finalBrand = productData.brand;
+            if (industryType === 'ELECTRONICS' || productData.industryType === 'ELECTRONICS') {
+                finalBrand = normalizeBrandCode(productData.brand, productData.category);
+            }
             
             form.setFieldsValue({
                 productCode: productData.productCode,
                 productName: productData.productName,
-                brand: normalizedBrand,
                 category: productData.category,
+                subCategory: productData.subCategory,  // Nếu DB cũ ko có, nó sẽ để trống
+                brand: finalBrand,                     // 🔥 Đã lấy đúng Hãng tạp hóa
                 condition: productData.condition,
                 trackingType: productData.trackingType || 'QUANTITY',
                 warrantyMonths: productData.warrantyMonths,
+                // ... (các trường còn lại giữ nguyên của bạn) ...
                 price: productData.price,
                 cost: productData.cost,
                 currentStock: productData.currentStock || 0,
@@ -157,15 +163,15 @@ const ProductFormModal = ({
                 specifications: productData.specifications ? 
                     Object.entries(productData.specifications).map(([key, value]) => ({ key, value })) : [],
                 industryType: productData.industryType || 'ELECTRONICS',
-                batches: productData.batches || [],  // 🔥 Load lô hàng từ backend
-                unitConversions: productData.unitConversions || [],  // 🔥 Load quy đổi từ backend
+                batches: productData.batches || [],
+                unitConversions: productData.unitConversions || [],
             });
             setSelectedCategory(productData.category);
-            setSelectedBrand(normalizedBrand);
+            setSelectedBrand(finalBrand);
             
-            // Load model options nếu brand ada
-            if (normalizedBrand && BRAND_MODELS[normalizedBrand]) {
-                const models = getModelsByBrand(normalizedBrand);
+            // Load model options nếu brand ada (Chỉ dành cho Điện tử)
+            if (finalBrand && BRAND_MODELS[finalBrand]) {
+                const models = getModelsByBrand(finalBrand);
                 setModelOptions(models);
             }
         } else if (visible && mode === 'create') {
@@ -204,52 +210,73 @@ const ProductFormModal = ({
 
     // ==================== XỬ LÝ SUBMIT ====================
     const handleSubmit = async () => {
-        try {
-            setIsSubmitting(true);
-            const formValues = await form.validateFields();
+    try {
+        setIsSubmitting(true);
+        const formValues = await form.validateFields();
 
-            // Convert specifications array về Map
-            const specMap = {};
-            if (formValues.specifications && Array.isArray(formValues.specifications)) {
-                formValues.specifications.forEach(spec => {
-                    if (spec && spec.key && spec.value !== undefined && spec.value !== null && spec.value !== '') {
-                        specMap[spec.key] = spec.value;
-                    }
-                });
-            }
+        // 🔥 FIX QUAN TRỌNG: Lấy dữ liệu trực tiếp từ form instance
+        // Vì batches và unitConversions không nằm trong <Form.Item> nên formValues sẽ không có
+        const currentBatches = form.getFieldValue('batches') || [];
+        const currentUnitConversions = form.getFieldValue('unitConversions') || [];
 
-            // ========== CLEAN PAYLOAD: Remove null/undefined values ==========
-            const cleanPayload = Object.fromEntries(
-                Object.entries(formValues)
-                    .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-            );
+        // Convert specifications array về Map
+        const specMap = {};
+        if (formValues.specifications && Array.isArray(formValues.specifications)) {
+            formValues.specifications.forEach(spec => {
+                if (spec && spec.key && spec.value !== undefined && spec.value !== null && spec.value !== '') {
+                    specMap[spec.key] = spec.value;
+                }
+            });
+        }
 
-            const payload = {
-                ...cleanPayload,
-                specifications: specMap,
-                industryType: industryType || 'ELECTRONICS',  // 🔥 Thêm industryType vào payload
-                batches: formValues.batches || [],  // 🔥 Thêm batches vào payload
-                unitConversions: formValues.unitConversions || [],  // 🔥 Thêm unitConversions vào payload
-            };
+        // ========== CLEAN PAYLOAD: Remove null/undefined values ==========
+        const cleanPayload = Object.fromEntries(
+            Object.entries(formValues)
+                .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        );
 
-            if (mode === 'create') {
-                await createProduct(tenantId, payload);
-                message.success('Tạo sản phẩm thành công');
-                form.resetFields();
-                setSelectedCategory(null);
-                onSuccess();
-            } else if (mode === 'edit') {
-                await updateProduct(tenantId, productData.id, payload);
-                message.success('Cập nhật sản phẩm thành công');
-                onSuccess();
-            }
+        const payload = {
+            ...cleanPayload,
+            specifications: specMap,
+            industryType: industryType || 'ELECTRONICS',
+            // 🔥 Gán bằng biến vừa lấy thay vì lấy từ formValues
+            batches: currentBatches, 
+            unitConversions: currentUnitConversions, 
+        };
+
+        console.log("Dữ liệu gửi xuống Backend:", payload); // Bạn có thể bật dòng này để debug
+
+        if (mode === 'create') {
+            await createProduct(tenantId, payload);
+            message.success('Tạo sản phẩm thành công');
+            form.resetFields();
+            setSelectedCategory(null);
+            onSuccess();
+        } else if (mode === 'edit') {
+            await updateProduct(tenantId, productData.id, payload);
+            message.success('Cập nhật sản phẩm thành công');
+            onSuccess();
+        }
         } catch (error) {
-            console.error('Form error:', error);
-            if (error.response?.data?.message) {
+            // ========== HANDLE FORM VALIDATION ERRORS ====================
+            if (error.errorFields && Array.isArray(error.errorFields)) {
+                // This is a form validation error
+                console.error('❌ Form validation errors:');
+                const errorMessages = error.errorFields.map(field => {
+                    console.error(`  - Field: ${field.name.join('.')} | Error: ${field.errors.join(', ')}`);
+                    return `${field.name.join('.')}: ${field.errors.join(', ')}`;
+                });
+                message.error('Vui lòng kiểm tra các lỗi sau:\n' + errorMessages.join('\n'));
+            } 
+            // ========== HANDLE API/NETWORK ERRORS ====================
+            else if (error.response?.data?.message) {
+                console.error('❌ API Error:', error.response.data.message);
                 message.error(error.response.data.message);
             } else if (error.message) {
+                console.error('❌ Error:', error.message);
                 message.error(error.message);
             } else {
+                console.error('❌ Unknown error:', error);
                 message.error('Xảy ra lỗi. Vui lòng thử lại.');
             }
         } finally {

@@ -28,6 +28,7 @@ public class Product {
     private String productName;              // Tên sản phẩm
     private String brand;                    // Hãng (Samsung, Apple, Xiaomi...)
     private String category;                 // Danh mục
+    private String subCategory;              // 🔥 Phân loại chi tiết (cho GROCERY)
     private String description;              // Mô tả
     private String condition;                // Tình trạng: New, LikeNew, Good, Refurbished, Display
     private Double price;                    // Giá bán
@@ -146,6 +147,14 @@ public class Product {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getSubCategory() {
+        return subCategory;
+    }
+
+    public void setSubCategory(String subCategory) {
+        this.subCategory = subCategory;
     }
 
     public String getDescription() {

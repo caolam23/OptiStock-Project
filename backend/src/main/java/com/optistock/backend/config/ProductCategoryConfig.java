@@ -21,14 +21,20 @@ public class ProductCategoryConfig {
     static {
         // =============== ELECTRONICS ===============
         CATEGORIES_BY_INDUSTRY.put("electronics", Arrays.asList(
-                "Điện thoại & Tablet",
-                "Laptop & PC",
-                "Phụ kiện & Sạc",
-                "Tai nghe & Loa",
-                "Camera & Quay phim",
-                "Mạng & Kết nối",
-                "Đồ chơi thông minh",
-                "Khác"
+                "Điện thoại",
+                "Laptop",
+                "Máy tính để bàn (PC)",
+                "Linh kiện máy tính",
+                "Máy tính bảng",
+                "Thiết bị đeo",
+                "Phụ kiện công nghệ",
+                "Camera",
+                "TV / Màn hình",
+                "Thiết bị gaming",
+                "Thiết bị mạng",
+                "Thiết bị văn phòng",
+                "Lưu trữ dữ liệu",
+                "Thiết bị điện thông minh"
         ));
         UNITS_BY_INDUSTRY.put("electronics", Arrays.asList(
                 "Cái", "Bộ", "Chiếc"
@@ -36,14 +42,17 @@ public class ProductCategoryConfig {
 
         // =============== FMCG ===============
         CATEGORIES_BY_INDUSTRY.put("fmcg", Arrays.asList(
-                "Đồ uống",
-                "Thực phẩm khô",
-                "Thực phẩm đông lạnh",
-                "Sữa & Sản phẩm sữa",
-                "Bánh kẹo",
-                "Gia vị & Nước sốt",
-                "Mỹ phẩm & Vệ sinh",
-                "Khác"
+                "FRESH_FOOD",
+                "DRY_FOOD",
+                "BEVERAGES",
+                "CONFECTIONERY",
+                "SPICES_SEASONINGS",
+                "FROZEN",
+                "COSMETICS_TOILETRIES",
+                "BABY_CARE",
+                "PET_CARE",
+                "HEALTH_SUPPLEMENTS",
+                "OTHER"
         ));
         UNITS_BY_INDUSTRY.put("fmcg", Arrays.asList(
                 "Chai", "Thùng", "Gói", "Hộp", "Kg", "Lít", "Cái"

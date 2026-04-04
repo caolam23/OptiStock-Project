@@ -78,6 +78,7 @@ public class ProductService {
         product.setProductCode(dto.getProductCode().trim());
         product.setProductName(dto.getProductName().trim());
         product.setCategory(dto.getCategory() != null ? dto.getCategory().trim() : null);
+        product.setSubCategory(dto.getSubCategory() != null ? dto.getSubCategory().trim() : null);  // 🔥 Set subCategory (cho GROCERY)
         product.setDescription(dto.getDescription() != null ? dto.getDescription().trim() : null);
         product.setCondition(dto.getCondition() != null ? dto.getCondition().trim() : "New");
         product.setPrice(dto.getPrice());
@@ -92,6 +93,8 @@ public class ProductService {
         product.setCurrentStock(dto.getCurrentStock() != null ? dto.getCurrentStock() : 0);
         product.setSupplier(dto.getSupplier() != null ? dto.getSupplier().trim() : null);
         product.setIndustryType(dto.getIndustryType() != null ? dto.getIndustryType() : "ELECTRONICS");  // 🔥 Set industryType
+        product.setBatches(dto.getBatches());  // 🔥 Set batches (GROCERY)
+        product.setUnitConversions(dto.getUnitConversions());  // 🔥 Set unitConversions (GROCERY)
         product.setActive(true);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
@@ -581,6 +584,7 @@ public class ProductService {
         // ========== Cập nhật Product entity ==========
         product.setProductName(dto.getProductName().trim());
         product.setCategory(dto.getCategory() != null ? dto.getCategory().trim() : null);
+        product.setSubCategory(dto.getSubCategory() != null ? dto.getSubCategory().trim() : product.getSubCategory());  // 🔥 Update subCategory (cho GROCERY)
         product.setDescription(dto.getDescription() != null ? dto.getDescription().trim() : null);
         product.setCondition(dto.getCondition() != null ? dto.getCondition().trim() : product.getCondition());
         product.setPrice(dto.getPrice());
@@ -594,6 +598,8 @@ public class ProductService {
         product.setWarrantyMonths(dto.getWarrantyMonths() != null ? dto.getWarrantyMonths() : product.getWarrantyMonths());
         product.setSpecifications(dto.getSpecifications() != null ? dto.getSpecifications() : product.getSpecifications());
         product.setIndustryType(dto.getIndustryType() != null ? dto.getIndustryType() : product.getIndustryType());  // 🔥 Set industryType
+        product.setBatches(dto.getBatches() != null ? dto.getBatches() : product.getBatches());  // 🔥 Update batches (GROCERY)
+        product.setUnitConversions(dto.getUnitConversions() != null ? dto.getUnitConversions() : product.getUnitConversions());  // 🔥 Update unitConversions (GROCERY)
         product.setUpdatedAt(LocalDateTime.now());
 
         // Lưu vào database

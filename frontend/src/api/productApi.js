@@ -38,16 +38,23 @@ const debounce = (func, delay) => {
  * })
  */
 export const getProducts = (tenantId, params = {}) => {
-    // Merge default values dengan params (params override defaults)
-    const finalParams = {
-        page: params.page !== undefined ? params.page : 0,
-        size: params.size !== undefined ? params.size : 10,
-        ...params  // Spread all params (including search, category, brand, stockStatus)
-    };
+    // Merge default values với params (params override defaults)
+    // Nếu là location select (fullList = true), gửi limit lớn để lấy tất cả
+    // Nếu là pagination view, gửi page/size
+    const fullListMode = params.fullList === true;
+    
+    const finalParams = fullListMode 
+        ? { limit: 9999, ...params }  // Legacy mode: lấy tất cả sản phẩm một lần
+        : {
+            page: params.page !== undefined ? params.page : 0,
+            size: params.size !== undefined ? params.size : 10,
+            ...params
+        };
 
     // Log params để debug
     console.log(`📤 [AXIOS] GET /v1/workspaces/${tenantId}/products`, {
-        params: finalParams
+        params: finalParams,
+        mode: fullListMode ? 'FULL_LIST' : 'PAGINATED'
     });
 
     return axiosClient.get(`/v1/workspaces/${tenantId}/products`, {

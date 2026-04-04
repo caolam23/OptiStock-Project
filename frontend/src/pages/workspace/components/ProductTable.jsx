@@ -7,7 +7,8 @@ import {
     WarningFilled, 
     EditOutlined, 
     DeleteOutlined, 
-    InboxOutlined 
+    InboxOutlined,
+    EyeOutlined 
 } from '@ant-design/icons';
 import styles from './ProductTable.module.css';
 
@@ -16,6 +17,7 @@ const ProductTable = ({
     loading = false, 
     onEdit = null, 
     onDelete = null,
+    onView = null,
     pagination = null,
     industryType = 'ELECTRONICS'
 }) => {
@@ -196,6 +198,15 @@ const ProductTable = ({
         
         const config = conditionMap[condition] || { color: 'default', label: condition || '—' };
         return <Tag color={config.color} style={{ fontSize: '11px' }}>{config.label}</Tag>;
+    };
+
+    /**
+     * Handle view action
+     */
+    const handleViewClick = (product) => {
+        if (onView) {
+            onView(product);
+        }
     };
 
     /**
@@ -400,6 +411,15 @@ const ProductTable = ({
                                                 <Dropdown 
                                                     menu={{ 
                                                         items: [
+                                                            {
+                                                                key: 'view',
+                                                                icon: <EyeOutlined />,
+                                                                label: 'Xem chi tiết',
+                                                                onClick: () => {
+                                                                    console.log('View button clicked for:', product.productName);
+                                                                    handleViewClick(product);
+                                                                },
+                                                            },
                                                             {
                                                                 key: 'edit',
                                                                 icon: <EditOutlined />,

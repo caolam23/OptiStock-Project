@@ -5,6 +5,7 @@ import styles from './Products.module.css';
 import ProductTable from './components/ProductTable';
 import ProductSearch from './components/ProductSearch';
 import ProductFormModal from './components/ProductFormModal';
+import ProductDetailDrawer from './components/ProductDetailDrawer';
 import BulkImportDrawer from './components/BulkImportDrawer';
 // 🔥 SỬA Ở ĐÂY: Import thêm getProductCategories
 import { getProducts, deleteProduct, getProductCategories } from '../../api/productApi';
@@ -47,6 +48,8 @@ const Products = () => {
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
+    const [selectedDetailProduct, setSelectedDetailProduct] = useState(null);
     const [searchKeyword, setSearchKeyword] = useState('');
     
     // ========== PAGINATION STATES ==========
@@ -255,6 +258,16 @@ const Products = () => {
         }
     };
 
+    const handleViewProduct = (product) => {
+        setSelectedDetailProduct(product);
+        setDetailDrawerVisible(true);
+    };
+
+    const handleDetailDrawerClose = () => {
+        setDetailDrawerVisible(false);
+        setSelectedDetailProduct(null);
+    };
+
     // ========== SIDE EFFECTS ==========
 
     /**
@@ -458,12 +471,14 @@ const Products = () => {
                 loading={loading}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onView={handleViewProduct}
                 pagination={{
                     current: currentPage,
                     pageSize: pageSize,
                     total: totalProducts,
                     onChange: handlePaginationChange
                 }}
+                industryType={currentIndustryType}
             />
 
             {/* ========== MODAL: THÊM SẢN PHẨM / SỬA SẢN PHẨM ========== */}
@@ -495,6 +510,14 @@ const Products = () => {
                 industryType={currentIndustryType}
                 onClose={() => setDrawerVisible(false)}
                 onSuccess={handleBulkImportSuccess}
+            />
+
+            {/* ========== DRAWER: XEM CHI TIẾT SẢN PHẨM ========== */}
+            <ProductDetailDrawer
+                visible={detailDrawerVisible}
+                product={selectedDetailProduct}
+                industryType={currentIndustryType}
+                onClose={handleDetailDrawerClose}
             />
         </div>
     );

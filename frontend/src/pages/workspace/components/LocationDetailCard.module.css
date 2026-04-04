@@ -1,0 +1,82 @@
+/* LocationDetailCard.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+.form {
+    padding: 16px;
+    overflow: auto;
+    flex: 1;
+}
+
+.form :global(.ant-form-item) {
+    margin-bottom: 16px;
+}
+
+.form :global(.ant-form-item-label > label) {
+    font-weight: 500;
+    color: #262626;
+    font-size: 13px;
+}
+
+.readonlyInput {
+    background: #fafafa !important;
+    cursor: not-allowed;
+}
+
+.readonlyInput :global(.ant-input-disabled) {
+    background: #fafafa !important;
+    color: #8c8c8c !important;
+}
+
+.formActions {
+    margin-top: 24px !important;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.divider {
+    margin: 16px 0 !important;
+}
+
+.childrenSection {
+    padding: 0 16px 16px;
+}
+
+.childrenTitle {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.childrenTable {
+    width: 100%;
+}
+
+.childrenTable :global(.ant-table-cell) {
+    padding: 8px !important;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        border-radius: 0;
+    }
+
+    .form {
+        padding: 12px;
+    }
+
+    .childrenSection {
+        padding: 0 12px 12px;
+    }
+}

@@ -2,6 +2,8 @@ package com.optistock.backend.dto;
 
 import com.optistock.backend.enums.TrackingType;
 import com.optistock.backend.enums.ActivationStatus;
+import com.optistock.backend.model.Product.Batch;
+import com.optistock.backend.model.Product.UnitConversion;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ public class ProductDTO {
     private String productName;              // Tên sản phẩm
     private String brand;                    // Hãng
     private String category;                 // Danh mục
+    private String subCategory;              // 🔥 Phân loại chi tiết (cho GROCERY)
     private String description;              // Mô tả
     private String condition;                // Tình trạng: New, LikeNew, Good, Refurbished, Display
     private Double price;                    // Giá bán
@@ -35,6 +38,10 @@ public class ProductDTO {
     
     // ==================== PHÂN LOẠI NGÀNH HÀNG ====================
     private String industryType;             // "ELECTRONICS" hoặc "GROCERY"
+    
+    // ==================== GROCERY CHUYÊN BIỆT ====================
+    private List<Batch> batches;             // Danh sách lô hàng & thông tin hạn sử dụng
+    private List<UnitConversion> unitConversions;  // Danh sách quy đổi đơn vị
     
     // ==================== ELECTRONICS CHUYÊN BIỆT ====================
     private String originCode;               // Mã vùng (VN/A, LL/A...)
@@ -117,6 +124,14 @@ public class ProductDTO {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getSubCategory() {
+        return subCategory;
+    }
+
+    public void setSubCategory(String subCategory) {
+        this.subCategory = subCategory;
     }
 
     public String getDescription() {
@@ -269,5 +284,21 @@ public class ProductDTO {
 
     public void setIndustryType(String industryType) {
         this.industryType = industryType;
+    }
+
+    public List<Batch> getBatches() {
+        return batches;
+    }
+
+    public void setBatches(List<Batch> batches) {
+        this.batches = batches;
+    }
+
+    public List<UnitConversion> getUnitConversions() {
+        return unitConversions;
+    }
+
+    public void setUnitConversions(List<UnitConversion> unitConversions) {
+        this.unitConversions = unitConversions;
     }
 }

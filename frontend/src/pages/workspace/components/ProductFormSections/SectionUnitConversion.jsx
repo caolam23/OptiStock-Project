@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Input, InputNumber, Button, Space, Empty, Table, Tag, Tooltip } from 'antd';
 import { DeleteOutlined, PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
 
@@ -18,6 +18,13 @@ import { DeleteOutlined, PlusOutlined, InfoCircleOutlined } from '@ant-design/ic
  * - Quy đổi 2: 1 Thùng = 6 Lốc = 144 Lon → { unitName: "Thùng", conversionRate: 144, barcode: "..." }
  */
 const SectionUnitConversion = ({ form, industryType, mainUnit }) => {
+    // ==================== LOCAL STATE FOR TEMP UNIT INPUT ====================
+    const [tempUnit, setTempUnit] = useState({
+        unitName: '',
+        conversionRate: null,
+        barcode: '',
+    });
+
     // Chỉ hiển thị nếu là ngành Grocery
     if (industryType !== 'GROCERY') {
         return null;
@@ -31,6 +38,41 @@ const SectionUnitConversion = ({ form, industryType, mainUnit }) => {
     const handleRemoveConversion = (index) => {
         const updatedConversions = unitConversions.filter((_, i) => i !== index);
         form.setFieldValue('unitConversions', updatedConversions);
+    };
+
+    /**
+     * Handle thêm quy đổi mới
+     */
+    const handleAddConversion = () => {
+        const { unitName, conversionRate } = tempUnit;
+
+        if (!unitName || !conversionRate) {
+            alert('Vui lòng nhập Tên Đơn Vị và Hệ số quy đổi');
+            return;
+        }
+
+        // Kiểm tra xem đơn vị này đã tồn tại chưa
+        if (unitConversions.some((u) => u.unitName.toLowerCase() === unitName.toLowerCase())) {
+            alert('Đơn vị này đã tồn tại, vui lòng nhập tên khác');
+            return;
+        }
+
+        const newConversion = {
+            unitName: unitName.trim(),
+            conversionRate: parseInt(conversionRate),
+            barcode: tempUnit.barcode.trim(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+
+        form.setFieldValue('unitConversions', [...unitConversions, newConversion]);
+
+        // Reset form fields
+        setTempUnit({
+            unitName: '',
+            conversionRate: null,
+            barcode: '',
+        });
     };
 
     /**
@@ -159,7 +201,12 @@ const SectionUnitConversion = ({ form, industryType, mainUnit }) => {
                         <label style={{ fontSize: '12px', fontWeight: '500', marginBottom: '4px', display: 'block' }}>
                             Tên Đơn Vị <span style={{ color: 'red' }}>*</span>
                         </label>
-                        <Input id="unitName" placeholder="VD: Thùng, Lốc, Hộp" style={{ height: '32px' }} />
+                        <Input
+                            placeholder="VD: Thùng, Lốc, Hộp"
+                            value={tempUnit.unitName}
+                            onChange={(e) => setTempUnit({ ...tempUnit, unitName: e.target.value })}
+                            style={{ height: '32px' }}
+                        />
                     </div>
 
                     {/* Hệ số quy đổi */}
@@ -169,9 +216,10 @@ const SectionUnitConversion = ({ form, industryType, mainUnit }) => {
                             <span style={{ color: 'red' }}>*</span>
                         </label>
                         <InputNumber
-                            id="conversionRate"
                             min={1}
                             placeholder="VD: 24"
+                            value={tempUnit.conversionRate}
+                            onChange={(value) => setTempUnit({ ...tempUnit, conversionRate: value })}
                             style={{ width: '100%', height: '32px' }}
                         />
                     </div>
@@ -182,9 +230,10 @@ const SectionUnitConversion = ({ form, industryType, mainUnit }) => {
                             Mã Vạch
                         </label>
                         <Input
-                            id="barcode"
                             placeholder="VD: 893602400..."
                             maxLength={13}
+                            value={tempUnit.barcode}
+                            onChange={(e) => setTempUnit({ ...tempUnit, barcode: e.target.value })}
                             style={{ height: '32px' }}
                         />
                     </div>
@@ -193,37 +242,7 @@ const SectionUnitConversion = ({ form, industryType, mainUnit }) => {
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
-                        onClick={() => {
-                            const unitName = document.getElementById('unitName')?.value;
-                            const conversionRate = document.getElementById('conversionRate')?.value;
-                            const barcode = document.getElementById('barcode')?.value || '';
-
-                            if (!unitName || !conversionRate) {
-                                alert('Vui lòng nhập Tên Đơn Vị và Hệ số quy đổi');
-                                return;
-                            }
-
-                            // Kiểm tra xem đơn vị này đã tồn tại chưa
-                            if (unitConversions.some((u) => u.unitName.toLowerCase() === unitName.toLowerCase())) {
-                                alert('Đơn vị này đã tồn tại, vui lòng nhập tên khác');
-                                return;
-                            }
-
-                            const newConversion = {
-                                unitName,
-                                conversionRate: parseInt(conversionRate),
-                                barcode,
-                                createdAt: new Date(),
-                                updatedAt: new Date(),
-                            };
-
-                            form.setFieldValue('unitConversions', [...unitConversions, newConversion]);
-
-                            // Reset form fields
-                            document.getElementById('unitName').value = '';
-                            document.getElementById('conversionRate').value = '';
-                            document.getElementById('barcode').value = '';
-                        }}
+                        onClick={handleAddConversion}
                     >
                         Thêm
                     </Button>

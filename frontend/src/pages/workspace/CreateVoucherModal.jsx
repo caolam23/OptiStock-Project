@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     CloseOutlined,
     PlusOutlined,
@@ -11,6 +11,7 @@ import {
     ArrowRightOutlined,
 } from '@ant-design/icons';
 import { createVoucher } from '../../api/managerApi';
+import { getLocations } from '../../api/locationApi';
 import styles from './CreateVoucherModal.module.css';
 
 /**
@@ -119,6 +120,7 @@ const CreateVoucherModal = ({ workspaceId, onClose, onCreated }) => {
                     )}
                     {step === 2 && (
                         <Step2Items
+                            workspaceId={workspaceId}
                             items={items}
                             setItemField={setItemField}
                             addItem={addItem}
@@ -261,48 +263,130 @@ const Step1Form = ({ form, setField }) => (
 );
 
 // ─── STEP 2: Danh sách sản phẩm ───────────────────────────────────────────────
-const Step2Items = ({ items, setItemField, addItem, removeItem }) => (
-    <div className={styles.formStack}>
-        <div className={styles.itemsHeader}>
-            <span className={styles.itemsCount}>{items.length} sản phẩm</span>
-            <button className={styles.btnAddItem} onClick={addItem}>
-                <PlusOutlined /> Thêm sản phẩm
-            </button>
-        </div>
-
-        {items.map((item, idx) => (
-            <div key={idx} className={styles.itemCard}>
-                <div className={styles.itemIndex}>{idx + 1}</div>
-                <div className={styles.itemFields}>
-                    <div className={styles.itemRow}>
-                        <input className={styles.input} placeholder="Mã / Barcode *"
-                            value={item.productCode}
-                            onChange={e => setItemField(idx, 'productCode', e.target.value)} />
-                        <input className={styles.input} placeholder="Tên sản phẩm *"
-                            value={item.productName}
-                            onChange={e => setItemField(idx, 'productName', e.target.value)} />
-                    </div>
-                    <div className={styles.itemRow}>
-                        <input className={styles.input} placeholder="Phân loại (màu, size...)"
-                            value={item.productVariant}
-                            onChange={e => setItemField(idx, 'productVariant', e.target.value)} />
-                        <input className={styles.input} style={{ flex: '0 0 140px' }} placeholder="Vị trí kệ"
-                            value={item.locationCode}
-                            onChange={e => setItemField(idx, 'locationCode', e.target.value)} />
-                        <input className={styles.inputQty} type="number" min={1} placeholder="SL*"
-                            value={item.quantityRequired}
-                            onChange={e => setItemField(idx, 'quantityRequired', e.target.value)} />
-                    </div>
-                </div>
-                {items.length > 1 && (
-                    <button className={styles.btnRemove} onClick={() => removeItem(idx)} aria-label="Xóa">
-                        <DeleteOutlined />
-                    </button>
-                )}
+const Step2Items = ({ workspaceId, items, setItemField, addItem, removeItem }) => {
+    const [locations, setLocations] = useState([]);
+    const [loadingLocations, setLoadingLocations] = useState(false);
+    const [selectedLocations, setSelectedLocations] = useState({});
+    
+    // Load all locations on mount
+    useEffect(() => {
+        const loadLocations = async () => {
+            try {
+                setLoadingLocations(true);
+                // Get workspace info to determine industryType
+                const workspace = JSON.parse(localStorage.getItem('currentWorkspace'));
+                let industryType = 'ELECTRONICS'; // default
+                
+                if (workspace?.name) {
+                    const nameLower = workspace.name.toLowerCase();
+                    if (nameLower.includes('tạp hóa') || nameLower.includes('grocery') || nameLower.includes('hoho')) {
+                        industryType = 'GROCERY';
+                    }
+                }
+                
+                const response = await getLocations(workspaceId, industryType);
+                if (response?.data) {
+                    setLocations(Array.isArray(response.data) ? response.data : []);
+                    console.log('✅ Locations loaded:', response.data?.length);
+                }
+            } catch (error) {
+                console.error('❌ Error loading locations:', error);
+                setLocations([]);
+            } finally {
+                setLoadingLocations(false);
+            }
+        };
+        
+        if (workspaceId) {
+            loadLocations();
+        }
+    }, [workspaceId]);
+    
+    const handleLocationSelect = (idx, locationId) => {
+        const location = locations.find(l => l.id === locationId);
+        if (location) {
+            setItemField(idx, 'locationCode', location.code || '');
+            setSelectedLocations(prev => ({
+                ...prev,
+                [idx]: location
+            }));
+            console.log('✅ Location selected:', location);
+        }
+    };
+    
+    return (
+        <div className={styles.formStack}>
+            <div className={styles.itemsHeader}>
+                <span className={styles.itemsCount}>{items.length} sản phẩm</span>
+                <button className={styles.btnAddItem} onClick={addItem}>
+                    <PlusOutlined /> Thêm sản phẩm
+                </button>
             </div>
-        ))}
-    </div>
-);
+
+            {items.map((item, idx) => (
+                <div key={idx} className={styles.itemCard}>
+                    <div className={styles.itemIndex}>{idx + 1}</div>
+                    <div className={styles.itemFields}>
+                        <div className={styles.itemRow}>
+                            <input className={styles.input} placeholder="Mã / Barcode *"
+                                value={item.productCode}
+                                onChange={e => setItemField(idx, 'productCode', e.target.value)} />
+                            <input className={styles.input} placeholder="Tên sản phẩm *"
+                                value={item.productName}
+                                onChange={e => setItemField(idx, 'productName', e.target.value)} />
+                        </div>
+                        <div className={styles.itemRow}>
+                            <input className={styles.input} placeholder="Phân loại (màu, size...)"
+                                value={item.productVariant}
+                                onChange={e => setItemField(idx, 'productVariant', e.target.value)} />
+                            
+                            {/* Location Dropdown */}
+                            <select 
+                                className={styles.input}
+                                style={{ flex: '0 0 140px' }}
+                                value={selectedLocations[idx]?.id || ''}
+                                onChange={e => handleLocationSelect(idx, e.target.value)}
+                                disabled={loadingLocations}
+                            >
+                                <option value="">-- Chọn vị trí --</option>
+                                {locations.map(loc => (
+                                    <option key={loc.id} value={loc.id}>
+                                        {loc.code || 'N/A'}
+                                    </option>
+                                ))}
+                            </select>
+                            
+                            <input className={styles.inputQty} type="number" min={1} placeholder="SL*"
+                                value={item.quantityRequired}
+                                onChange={e => setItemField(idx, 'quantityRequired', e.target.value)} />
+                        </div>
+                        
+                        {/* Location Info - Auto-filled */}
+                        {selectedLocations[idx] && (
+                            <div style={{
+                                marginTop: 8,
+                                padding: '8px 12px',
+                                background: '#F0FDF4',
+                                border: '1px solid #22C55E',
+                                borderRadius: 4,
+                                fontSize: 12,
+                                color: '#166534'
+                            }}>
+                                <div>📍 <strong>{selectedLocations[idx].name}</strong></div>
+                                <div>Cấp độ: {selectedLocations[idx].level} | Mã: {selectedLocations[idx].code}</div>
+                            </div>
+                        )}
+                    </div>
+                    {items.length > 1 && (
+                        <button className={styles.btnRemove} onClick={() => removeItem(idx)} aria-label="Xóa">
+                            <DeleteOutlined />
+                        </button>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
 
 // ─── SMALL SUB COMPONENTS ─────────────────────────────────────────────────────
 

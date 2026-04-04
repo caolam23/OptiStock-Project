@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Card, DatePicker, InputNumber, Input, Button, Space, Empty, Table, Tag } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -16,6 +16,14 @@ import 'dayjs/locale/vi';
  * Dữ liệu được lưu trong field "batches" của Product document
  */
 const SectionBatchManagement = ({ form, industryType }) => {
+    // ==================== LOCAL STATE FOR TEMP BATCH INPUT ====================
+    const [tempBatch, setTempBatch] = useState({
+        batchCode: '',
+        quantity: null,
+        manufactureDate: null,
+        expiryDate: null,
+    });
+
     // Chỉ hiển thị nếu là ngành Grocery
     if (industryType !== 'GROCERY') {
         return null;
@@ -50,6 +58,37 @@ const SectionBatchManagement = ({ form, industryType }) => {
         if (daysLeft < 0) return <Tag color="red">Đã hết hạn</Tag>;
         if (daysLeft < 30) return <Tag color="orange">Sắp hết hạn ({daysLeft} ngày)</Tag>;
         return <Tag color="green">Còn hạn ({daysLeft} ngày)</Tag>;
+    };
+
+    /**
+     * Handle thêm lô hàng mới
+     */
+    const handleAddBatch = () => {
+        const { batchCode, quantity, expiryDate } = tempBatch;
+
+        if (!batchCode || !quantity || !expiryDate) {
+            alert('Vui lòng nhập đầy đủ Mã Lô, Số lượng và Hạn sử dụng');
+            return;
+        }
+
+        const newBatch = {
+            batchCode: batchCode.trim(),
+            quantity: parseInt(quantity),
+            manufactureDate: tempBatch.manufactureDate ? tempBatch.manufactureDate.toISOString() : null,
+            expiryDate: expiryDate.toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+
+        form.setFieldValue('batches', [...batches, newBatch]);
+
+        // Reset form fields
+        setTempBatch({
+            batchCode: '',
+            quantity: null,
+            manufactureDate: null,
+            expiryDate: null,
+        });
     };
 
     // ==================== COLUMNS CHO TABLE ====================
@@ -139,8 +178,9 @@ const SectionBatchManagement = ({ form, industryType }) => {
                             Mã Lô Hàng <span style={{ color: 'red' }}>*</span>
                         </label>
                         <Input
-                            id="batchCode"
                             placeholder="VD: CP-20240101-001"
+                            value={tempBatch.batchCode}
+                            onChange={(e) => setTempBatch({ ...tempBatch, batchCode: e.target.value })}
                             style={{ height: '32px' }}
                         />
                     </div>
@@ -151,9 +191,10 @@ const SectionBatchManagement = ({ form, industryType }) => {
                             Số Lượng <span style={{ color: 'red' }}>*</span>
                         </label>
                         <InputNumber
-                            id="batchQuantity"
                             min={1}
                             placeholder="VD: 1000"
+                            value={tempBatch.quantity}
+                            onChange={(value) => setTempBatch({ ...tempBatch, quantity: value })}
                             style={{ width: '100%', height: '32px' }}
                         />
                     </div>
@@ -166,8 +207,9 @@ const SectionBatchManagement = ({ form, industryType }) => {
                             Ngày Sản Xuất
                         </label>
                         <DatePicker
-                            id="batchMfgDate"
                             placeholder="Chọn ngày sản xuất"
+                            value={tempBatch.manufactureDate}
+                            onChange={(date) => setTempBatch({ ...tempBatch, manufactureDate: date })}
                             style={{ width: '100%', height: '32px' }}
                             format="DD/MM/YYYY"
                         />
@@ -179,8 +221,9 @@ const SectionBatchManagement = ({ form, industryType }) => {
                             Hạn Sử Dụng <span style={{ color: 'red' }}>*</span>
                         </label>
                         <DatePicker
-                            id="batchExpiryDate"
                             placeholder="Chọn hạn sử dụng"
+                            value={tempBatch.expiryDate}
+                            onChange={(date) => setTempBatch({ ...tempBatch, expiryDate: date })}
                             style={{ width: '100%', height: '32px' }}
                             format="DD/MM/YYYY"
                         />
@@ -191,34 +234,7 @@ const SectionBatchManagement = ({ form, industryType }) => {
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    onClick={() => {
-                        const batchCode = document.getElementById('batchCode')?.value;
-                        const batchQuantity = document.getElementById('batchQuantity')?.value;
-                        const batchMfgDate = document.getElementById('batchMfgDate')?.value;
-                        const batchExpiryDate = document.getElementById('batchExpiryDate')?.value;
-
-                        if (!batchCode || !batchQuantity || !batchExpiryDate) {
-                            alert('Vui lòng nhập đầy đủ Mã Lô, Số lượng và Hạn sử dụng');
-                            return;
-                        }
-
-                        const newBatch = {
-                            batchCode,
-                            quantity: parseInt(batchQuantity),
-                            manufactureDate: batchMfgDate ? new Date(batchMfgDate) : null,
-                            expiryDate: new Date(batchExpiryDate),
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                        };
-
-                        form.setFieldValue('batches', [...batches, newBatch]);
-
-                        // Reset form fields
-                        document.getElementById('batchCode').value = '';
-                        document.getElementById('batchQuantity').value = '';
-                        document.getElementById('batchMfgDate').value = '';
-                        document.getElementById('batchExpiryDate').value = '';
-                    }}
+                    onClick={handleAddBatch}
                     style={{ marginTop: '12px', width: '100%' }}
                 >
                     Thêm Lô Hàng

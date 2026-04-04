@@ -2,3 +2,4 @@ node_modules
 echo -e "\n*.md" >> .gitignore
 echo "application.properties" >> .gitignoreapplication.properties
 **/application.properties
+*.md
