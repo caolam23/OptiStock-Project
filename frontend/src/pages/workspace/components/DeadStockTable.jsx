@@ -9,24 +9,6 @@ import { DeleteOutlined, EyeOutlined } from '@ant-design/icons';
  * Hành động: Xem chi tiết, Xóa/Xử lý
  */
 const DeadStockTable = ({ data, loading, onDelete = null }) => {
-    const formatCurrency = (value) => {
-        if (!value) return '0 ₫';
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-            minimumFractionDigits: 0,
-        }).format(value);
-    };
-
-    /**
-     * Xác định mức cảnh báo dựa trên daysSinceLastSale
-     */
-    const getAlertLevel = (days) => {
-        if (days >= 180) return 'error';    // Đỏ: > 180 ngày
-        if (days >= 120) return 'warning';  // Cam: > 120 ngày
-        return 'default';                    // Vàng: > 90 ngày
-    };
-
     /**
      * Lấy badge cảnh báo
      */
@@ -39,39 +21,42 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
     const columns = [
         {
             title: 'STT',
-            width: '4%',
+            width: 60,
             render: (_, __, index) => index + 1,
             align: 'center',
+            fixed: 'left',
         },
         {
             title: 'Mã Sản Phẩm',
             dataIndex: 'productCode',
             key: 'productCode',
-            width: '8%',
+            width: 100,
             render: (text) => <span style={{ fontWeight: '500', color: '#0050b3' }}>{text}</span>,
+            fixed: 'left',
         },
         {
             title: 'Tên Sản Phẩm',
             dataIndex: 'productName',
             key: 'productName',
-            width: '18%',
+            width: 180,
             ellipsis: {
                 showTitle: false,
             },
             render: (text) => <Tooltip title={text}>{text}</Tooltip>,
+            fixed: 'left',
         },
         {
             title: 'Danh Mục',
             dataIndex: 'category',
             key: 'category',
-            width: '10%',
+            width: 120,
             render: (text) => <Tag>{text}</Tag>,
         },
         {
             title: 'Tình Trạng',
             dataIndex: 'condition',
             key: 'condition',
-            width: '10%',
+            width: 120,
             render: (text) => {
                 const colorMap = {
                     'New': 'green',
@@ -88,7 +73,7 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
             title: 'Ngày Không Bán',
             dataIndex: 'daysSinceLastSale',
             key: 'daysSinceLastSale',
-            width: '10%',
+            width: 140,
             render: (days) => (
                 <Space>
                     {getAlertBadge(days)}
@@ -102,7 +87,7 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
             title: 'Tồn Kho',
             dataIndex: 'stockQuantity',
             key: 'stockQuantity',
-            width: '8%',
+            width: 80,
             render: (value) => <span style={{ fontWeight: '500' }}>{value} cái</span>,
             align: 'right',
         },
@@ -110,18 +95,29 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
             title: 'Giá Vốn (VND)',
             dataIndex: 'costPrice',
             key: 'costPrice',
-            width: '11%',
-            render: (value) => formatCurrency(value),
+            width: 150,
+            render: (value) => {
+                if (!value) return '0 ₫';
+                return new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0,
+                }).format(value);
+            },
             align: 'right',
         },
         {
             title: 'Tổng Vốn Giam (VND)',
             dataIndex: 'totalValue',
             key: 'totalValue',
-            width: '12%',
+            width: 150,
             render: (value) => (
                 <span style={{ fontWeight: 'bold', color: '#f5222d' }}>
-                    {formatCurrency(value)}
+                    {!value ? '0 ₫' : new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                    }).format(value)}
                 </span>
             ),
             align: 'right',
@@ -130,7 +126,7 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
         {
             title: 'Hành Động',
             key: 'action',
-            width: '9%',
+            width: 100,
             render: (_, record) => (
                 <Space size="small">
                     <Tooltip title="Chi tiết">
@@ -158,6 +154,7 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
                 </Space>
             ),
             align: 'center',
+            fixed: 'right',
         },
     ];
 
@@ -171,7 +168,13 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
                 <>
                     {/* Alert cảnh báo */}
                     <Alert
-                        message={`⚠️ Tổng vốn hàng tồn >90 ngày: ${formatCurrency(totalDeadStockValue)}`}
+                        message={`⚠️ Tổng vốn hàng tồn >90 ngày: ${
+                            !totalDeadStockValue ? '0 ₫' : new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND',
+                                minimumFractionDigits: 0,
+                            }).format(totalDeadStockValue)
+                        }`}
                         description="Cần xem xét các chiến lược khuyến mãi, thanh lý hoặc điều chỉnh hàng tồn."
                         type="warning"
                         showIcon
@@ -190,7 +193,7 @@ const DeadStockTable = ({ data, loading, onDelete = null }) => {
                         }}
                         bordered
                         size="middle"
-                        scroll={{ x: 1400 }}
+                        scroll={{ x: 1300 }}
                     />
                 </>
             )}

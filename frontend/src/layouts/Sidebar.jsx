@@ -74,6 +74,13 @@ const MENU_CONFIG = [
         roles: ['OWNER', 'ACCOUNTANT'],
     },
     {
+        key: 'accountant-dashboard',
+        label: 'Tổng quan tài chính',
+        icon: <BarChartOutlined />,
+        path: 'accountant-dashboard',
+        roles: ['OWNER', 'ACCOUNTANT', 'MANAGER'],
+    },
+    {
         key: 'reports',
         label: 'Báo cáo',
         icon: <BarChartOutlined />,

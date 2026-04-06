@@ -7,15 +7,6 @@ import { Table, Tag, Space, Empty, Spin } from 'antd';
  * Cột: Mã, Tên, Nhóm (A/B/C với Tag màu), Lượng bán, Giá, Doanh thu, % Lũy tích
  */
 const AbcAnalysisTable = ({ data, loading }) => {
-    const formatCurrency = (value) => {
-        if (!value) return '0 ₫';
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-            minimumFractionDigits: 0,
-        }).format(value);
-    };
-
     /**
      * Lấy màu Tag dựa trên nhóm ABC
      */
@@ -42,36 +33,39 @@ const AbcAnalysisTable = ({ data, loading }) => {
     const columns = [
         {
             title: 'STT',
-            width: '5%',
+            width: 60,
             render: (_, __, index) => index + 1,
             align: 'center',
+            fixed: 'left',
         },
         {
             title: 'Mã Sản Phẩm',
             dataIndex: 'productCode',
             key: 'productCode',
-            width: '10%',
+            width: 100,
             render: (text) => <span style={{ fontWeight: '500' }}>{text}</span>,
+            fixed: 'left',
         },
         {
             title: 'Tên Sản Phẩm',
             dataIndex: 'productName',
             key: 'productName',
-            width: '20%',
+            width: 200,
             ellipsis: true,
+            fixed: 'left',
         },
         {
             title: 'Danh Mục',
             dataIndex: 'productCategory',
             key: 'productCategory',
-            width: '12%',
+            width: 120,
             render: (text) => <Tag>{text}</Tag>,
         },
         {
             title: 'Nhóm ABC',
             dataIndex: 'category',
             key: 'category',
-            width: '10%',
+            width: 120,
             render: (category) => getCategoryTag(category),
             align: 'center',
         },
@@ -79,7 +73,7 @@ const AbcAnalysisTable = ({ data, loading }) => {
             title: 'Lượng Bán',
             dataIndex: 'quantitySold',
             key: 'quantitySold',
-            width: '10%',
+            width: 100,
             render: (value) => <span style={{ fontWeight: '500' }}>{value?.toLocaleString()}</span>,
             align: 'right',
         },
@@ -87,18 +81,29 @@ const AbcAnalysisTable = ({ data, loading }) => {
             title: 'Giá Bán (VND)',
             dataIndex: 'price',
             key: 'price',
-            width: '12%',
-            render: (value) => formatCurrency(value),
+            width: 150,
+            render: (value) => {
+                if (!value) return '0 ₫';
+                return new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0,
+                }).format(value);
+            },
             align: 'right',
         },
         {
             title: 'Doanh Thu (VND)',
             dataIndex: 'totalRevenue',
             key: 'totalRevenue',
-            width: '13%',
+            width: 150,
             render: (value) => (
                 <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
-                    {formatCurrency(value)}
+                    {!value ? '0 ₫' : new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                    }).format(value)}
                 </span>
             ),
             align: 'right',
@@ -107,7 +112,7 @@ const AbcAnalysisTable = ({ data, loading }) => {
             title: '% Lũy Tích',
             dataIndex: 'cumulativePercentage',
             key: 'cumulativePercentage',
-            width: '10%',
+            width: 100,
             render: (value) => (
                 <span style={{ fontWeight: 'bold' }}>
                     {value?.toFixed(2)}%

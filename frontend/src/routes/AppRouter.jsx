@@ -36,6 +36,7 @@ import StocktakeDetail from '../pages/workspace/StocktakeDetail';
 import Personnel from '../pages/workspace/Personnel';
 import AuditLog from '../pages/workspace/AuditLog';
 import Settings from '../pages/workspace/Settings';
+import AccountantDashboard from '../pages/workspace/AccountantDashboard';
 
 /**
  * AppRouter: Cấu trúc routing toàn ứng dụng.
@@ -117,6 +118,13 @@ const AppRouter = () => {
                     <Route path="finance" element={
                         <WorkspaceRoleRoute allowedRoles={['OWNER', 'ACCOUNTANT']}>
                             <Finance />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Tổng quan tài chính (Accountant Dashboard) — ACCOUNTANT, OWNER, MANAGER */}
+                    <Route path="accountant-dashboard" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'ACCOUNTANT', 'MANAGER']}>
+                            <AccountantDashboard />
                         </WorkspaceRoleRoute>
                     } />
 
