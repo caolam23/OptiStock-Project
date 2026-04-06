@@ -5,7 +5,6 @@ import com.optistock.backend.model.TenantMember;
 import com.optistock.backend.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -13,40 +12,40 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * WorkspaceRoleValidator - Kiểm tra quyền của user trong workspace
+ * WorkspaceRoleValidator - Xác thực quyền của user trong workspace
  * 
- * Luồng:
- * 1. Lấy userId từ Spring Security context
- * 2. Lấy workspaceId từ URL parameter hoặc X-Workspace-Id header
- * 3. Query Tenant để tìm TenantMember tương ứng
- * 4. So sánh role với các role được phép
+ * Kiểm tra xem user có role phù hợp trong workspace hay không bằng cách:
+ * 1. Lấy email từ SecurityContext (JWT token)
+ * 2. Truy vấn Tenant document
+ * 3. Tìm TenantMember với email matching
+ * 4. So sánh role với danh sách roles được phép
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class WorkspaceRoleValidator {
-
+    
     private final TenantRepository tenantRepository;
-
+    
     /**
-     * Kiểm tra user có role được phép trong workspace không
+     * Kiểm tra user có role cho phép trong workspace
      * 
-     * @param workspaceId - Workspace ID (Tenant MongoDB ID)
-     * @param allowedRoles - Danh sách role được phép (VD: "OWNER", "MANAGER", "ACCOUNTANT")
-     * @return true nếu user có role hợp lệ, false nếu không
+     * @param workspaceId Tenant ID
+     * @param allowedRoles Các role được phép (ACCOUNTANT, MANAGER, OWNER, v.v)
+     * @return true nếu user có một trong các allowed roles, false nếu không
      */
     public boolean hasWorkspaceRole(String workspaceId, String... allowedRoles) {
         try {
-            // 1. Lấy userId từ Spring Security context
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !authentication.isAuthenticated()) {
+            // 1. Lấy email từ SecurityContext
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal == null) {
                 log.warn("User not authenticated");
                 return false;
             }
             
-            String userEmail = (String) authentication.getPrincipal();
+            String userEmail = principal.toString();
             
-            // 2. Lấy Tenant từ database
+            // 2. Truy vấn Tenant
             Optional<Tenant> tenantOpt = tenantRepository.findById(workspaceId);
             if (tenantOpt.isEmpty()) {
                 log.warn("Workspace not found: {}", workspaceId);
@@ -54,14 +53,15 @@ public class WorkspaceRoleValidator {
             }
             
             Tenant tenant = tenantOpt.get();
-            
-            // 3. Tìm TenantMember tương ứng
             List<TenantMember> members = tenant.getMembers();
-            if (members == null) {
+            
+            // 3. Kiểm tra members list
+            if (members == null || members.isEmpty()) {
                 log.warn("Workspace {} has no members", workspaceId);
                 return false;
             }
             
+            // 4. Tìm TenantMember có email matching
             TenantMember member = members.stream()
                     .filter(m -> userEmail.equalsIgnoreCase(m.getEmail()))
                     .findFirst()
@@ -72,17 +72,17 @@ public class WorkspaceRoleValidator {
                 return false;
             }
             
-            // 4. So sánh role
+            // 5. So sánh role
             String userRole = member.getRole();
             for (String allowedRole : allowedRoles) {
-                if (userRole.equalsIgnoreCase(allowedRole)) {
+                if (userRole != null && userRole.equalsIgnoreCase(allowedRole)) {
                     log.info("User {} has role {} in workspace {}", userEmail, userRole, workspaceId);
                     return true;
                 }
             }
             
-            log.warn("User {} role {} not in allowed roles {} for workspace {}", 
-                    userEmail, userRole, allowedRoles, workspaceId);
+            log.warn("User {} role {} not in allowed roles for workspace {}", 
+                    userEmail, userRole, workspaceId);
             return false;
             
         } catch (Exception e) {
@@ -90,69 +90,68 @@ public class WorkspaceRoleValidator {
             return false;
         }
     }
-
+    
     /**
-     * Kiểm tra user có bất kỳ role nào trong workspace không
+     * Lấy role của user trong workspace
+     * 
+     * @param workspaceId Tenant ID
+     * @return Role string hoặc null nếu không tìm thấy
      */
-    public boolean hasAnyWorkspaceRole(String workspaceId) {
+    public String getUserWorkspaceRole(String workspaceId) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !authentication.isAuthenticated()) {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal == null) {
+                return null;
+            }
+            
+            String userEmail = principal.toString();
+            Optional<Tenant> tenantOpt = tenantRepository.findById(workspaceId);
+            
+            if (tenantOpt.isEmpty()) {
+                return null;
+            }
+            
+            Tenant tenant = tenantOpt.get();
+            TenantMember member = tenant.getMembers().stream()
+                    .filter(m -> userEmail.equalsIgnoreCase(m.getEmail()))
+                    .findFirst()
+                    .orElse(null);
+            
+            return member != null ? member.getRole() : null;
+            
+        } catch (Exception e) {
+            log.error("Error getting user workspace role", e);
+            return null;
+        }
+    }
+    
+    /**
+     * Kiểm tra user có là thành viên của workspace
+     * 
+     * @param workspaceId Tenant ID
+     * @return true nếu user là thành viên workspace
+     */
+    public boolean isWorkspaceMember(String workspaceId) {
+        try {
+            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (principal == null) {
                 return false;
             }
             
-            String userEmail = (String) authentication.getPrincipal();
-            
+            String userEmail = principal.toString();
             Optional<Tenant> tenantOpt = tenantRepository.findById(workspaceId);
+            
             if (tenantOpt.isEmpty()) {
                 return false;
             }
             
             Tenant tenant = tenantOpt.get();
-            if (tenant.getMembers() == null) {
-                return false;
-            }
-            
             return tenant.getMembers().stream()
                     .anyMatch(m -> userEmail.equalsIgnoreCase(m.getEmail()));
             
         } catch (Exception e) {
-            log.error("Error checking any workspace role", e);
+            log.error("Error checking workspace membership", e);
             return false;
-        }
-    }
-
-    /**
-     * Lấy role của user trong workspace
-     */
-    public String getUserWorkspaceRole(String workspaceId) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !authentication.isAuthenticated()) {
-                return null;
-            }
-            
-            String userEmail = (String) authentication.getPrincipal();
-            
-            Optional<Tenant> tenantOpt = tenantRepository.findById(workspaceId);
-            if (tenantOpt.isEmpty()) {
-                return null;
-            }
-            
-            Tenant tenant = tenantOpt.get();
-            if (tenant.getMembers() == null) {
-                return null;
-            }
-            
-            return tenant.getMembers().stream()
-                    .filter(m -> userEmail.equalsIgnoreCase(m.getEmail()))
-                    .map(TenantMember::getRole)
-                    .findFirst()
-                    .orElse(null);
-                    
-        } catch (Exception e) {
-            log.error("Error getting user workspace role", e);
-            return null;
         }
     }
 }

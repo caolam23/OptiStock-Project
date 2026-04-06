@@ -72,17 +72,27 @@ export const getTimeAgo = (timestamp) => {
   if (!timestamp) return 'Chưa truy cập';
 
   const now = new Date();
-  const then = new Date(timestamp); // Backend now outputs "2026-02-27T15:01:00+07:00" — parsed correctly
+  const then = new Date(timestamp);
+  if (isNaN(then.getTime())) return 'Không rõ';
   const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMs < 0) return 'Vừa xong'; // clock skew
 
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMs / 3_600_000);
+  const diffDays = Math.floor(diffMs / 86_400_000);
+  const diffWeeks = Math.floor(diffDays / 7);
+  const diffMonths = Math.floor(diffDays / 30);
+  const diffYears = Math.floor(diffDays / 365);
+
+  if (diffSecs < 60) return 'Vừa xong';
   if (diffMins < 60) return `${diffMins} phút trước`;
   if (diffHours < 24) return `${diffHours} giờ trước`;
   if (diffDays === 1) return 'Hôm qua';
   if (diffDays < 7) return `${diffDays} ngày trước`;
-  return 'Cách đây lâu';
+  if (diffWeeks < 4) return `${diffWeeks} tuần trước`;
+  if (diffMonths < 12) return `${diffMonths} tháng trước`;
+  return `${diffYears} năm trước`;
 };
 
 /**

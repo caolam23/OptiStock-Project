@@ -36,7 +36,10 @@ import StocktakeDetail from '../pages/workspace/StocktakeDetail';
 import Personnel from '../pages/workspace/Personnel';
 import AuditLog from '../pages/workspace/AuditLog';
 import Settings from '../pages/workspace/Settings';
-import AccountantDashboard from '../pages/workspace/AccountantDashboard';
+import SalesOrderList from "../pages/workspace/SalesOrderList";
+import CreateSalesOrder from "../pages/workspace/CreateSalesOrder";
+import AvailableStock from "../pages/workspace/AvailableStock";
+import SaleDashboard from "../pages/workspace/SaleDashboard";
 
 /**
  * AppRouter: Cấu trúc routing toàn ứng dụng.
@@ -86,6 +89,13 @@ const AppRouter = () => {
                         </WorkspaceRoleRoute>
                     } />
 
+                    {/* Tổng quan Bán hàng (Sale Dashboard) — OWNER, MANAGER, SALE */}
+                    <Route path="sale-dashboard" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'SALE']}>
+                            <SaleDashboard />
+                        </WorkspaceRoleRoute>
+                    } />
+
                     {/* Sản phẩm — OWNER, MANAGER */}
                     <Route path="products" element={
                         <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER']}>
@@ -121,13 +131,6 @@ const AppRouter = () => {
                         </WorkspaceRoleRoute>
                     } />
 
-                    {/* Tổng quan tài chính (Accountant Dashboard) — ACCOUNTANT, OWNER, MANAGER */}
-                    <Route path="accountant-dashboard" element={
-                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'ACCOUNTANT', 'MANAGER']}>
-                            <AccountantDashboard />
-                        </WorkspaceRoleRoute>
-                    } />
-
                     {/* Báo cáo — OWNER, MANAGER, ACCOUNTANT */}
                     <Route path="reports" element={
                         <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'ACCOUNTANT']}>
@@ -139,6 +142,34 @@ const AppRouter = () => {
                     <Route path="orders" element={
                         <WorkspaceRoleRoute allowedRoles={['OWNER', 'SALE']}>
                             <Orders />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Danh sách Đơn hàng bán (Sale) — OWNER, MANAGER, SALE */}
+                    <Route path="sales" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'SALE', 'ACCOUNTANT']}>
+                            <SalesOrderList />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Tạo Đơn hàng bán mới — OWNER, MANAGER, SALE */}
+                    <Route path="sales/create" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'SALE']}>
+                            <CreateSalesOrder />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Tra cứu Tồn kho khả dụng (ATP) — OWNER, MANAGER, SALE */}
+                    <Route path="available-stock" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'SALE']}>
+                            <AvailableStock />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Cập nhật Đơn hàng bán (Edit) — OWNER, MANAGER, SALE */}
+                    <Route path="sales/edit/:orderId" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'SALE']}>
+                            <CreateSalesOrder />
                         </WorkspaceRoleRoute>
                     } />
 

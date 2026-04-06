@@ -1,7 +1,9 @@
 package com.optistock.backend.controller;
 
 import com.optistock.backend.dto.StockVoucherDTO;
+import com.optistock.backend.enums.WorkspaceRole;
 import com.optistock.backend.exception.AuthException;
+import com.optistock.backend.security.annotation.RequireWorkspaceRole;
 import com.optistock.backend.service.StaffVoucherService;
 import com.optistock.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,8 @@ public class StaffVoucherController {
     // ──────────────────────────────────────────────
     // GET /pending/inbound — Danh sách phiếu nhập chờ
     // ──────────────────────────────────────────────
+     @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể xem danh sách phiếu nhập")
     @GetMapping("/pending/inbound")
     public ResponseEntity<?> getPendingInbound(
             @RequestHeader(value = "X-Workspace-Id", required = false) String tenantId,
@@ -61,6 +65,8 @@ public class StaffVoucherController {
     // ──────────────────────────────────────────────
     // GET /pending/outbound — Danh sách phiếu xuất chờ
     // ──────────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể xem danh sách phiếu xuất")
     @GetMapping("/pending/outbound")
     public ResponseEntity<?> getPendingOutbound(
             @RequestHeader(value = "X-Workspace-Id", required = false) String tenantId,
@@ -80,6 +86,8 @@ public class StaffVoucherController {
     // ──────────────────────────────────────────────
     // GET /{voucherId} — Chi tiết phiếu
     // ──────────────────────────────────────────────
+     @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể xem chi tiết phiếu")
     @GetMapping("/{voucherId}")
     public ResponseEntity<?> getVoucher(
             @PathVariable String voucherId,
@@ -100,6 +108,8 @@ public class StaffVoucherController {
     // ──────────────────────────────────────────────
     // PUT /{voucherId}/start — Bắt đầu xử lý phiếu
     // ──────────────────────────────────────────────
+      @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể bắt đầu xử lý phiếu")
     @PutMapping("/{voucherId}/start")
     public ResponseEntity<?> startVoucher(
             @PathVariable String voucherId,
@@ -122,6 +132,8 @@ public class StaffVoucherController {
     // PUT /{voucherId}/scan — Quét barcode
     // Body: { "barcode": "89300012", "quantity": 1 }
     // ──────────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể quét barcode")
     @PutMapping("/{voucherId}/scan")
     public ResponseEntity<?> scanBarcode(
             @PathVariable String voucherId,
@@ -157,6 +169,8 @@ public class StaffVoucherController {
     // PUT /{voucherId}/update-item — Nhập số lượng thủ công
     // Body: { "productCode": "89300012", "quantity": 10 }
     // ──────────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể cập nhật số lượng thủ công")
     @PutMapping("/{voucherId}/update-item")
     public ResponseEntity<?> updateItemManually(
             @PathVariable String voucherId,
@@ -189,6 +203,8 @@ public class StaffVoucherController {
     // ──────────────────────────────────────────────
     // PUT /{voucherId}/complete — Hoàn tất phiếu
     // ──────────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể hoàn tất phiếu")
     @PutMapping("/{voucherId}/complete")
     public ResponseEntity<?> completeVoucher(
             @PathVariable String voucherId,

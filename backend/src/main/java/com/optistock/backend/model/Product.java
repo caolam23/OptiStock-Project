@@ -27,6 +27,8 @@ public class Product {
     private String productCode;              // SKU
     private String productName;              // Tên sản phẩm
     private String brand;                    // Hãng (Samsung, Apple, Xiaomi...)
+    private Double sellingPrice; // Giá bán niêm yết
+    private Double maxDiscountPercent; // % chiết khấu tối đa cho phép
     private String category;                 // Danh mục
     private String subCategory;              // 🔥 Phân loại chi tiết (cho GROCERY)
     private String description;              // Mô tả
@@ -307,6 +309,22 @@ public class Product {
 
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public Double getSellingPrice() {
+        return sellingPrice;
+    }
+
+    public void setSellingPrice(Double sellingPrice) {
+        this.sellingPrice = sellingPrice;
+    }
+
+    public Double getMaxDiscountPercent() {
+        return maxDiscountPercent;
+    }
+
+    public void setMaxDiscountPercent(Double maxDiscountPercent) {
+        this.maxDiscountPercent = maxDiscountPercent;
     }
 
     // ==================== BUSINESS METHODS ====================

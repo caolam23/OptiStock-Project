@@ -1,7 +1,9 @@
 package com.optistock.backend.controller;
 
 import com.optistock.backend.dto.StocktakeTicketDTO;
+import com.optistock.backend.enums.WorkspaceRole;
 import com.optistock.backend.exception.AuthException;
+import com.optistock.backend.security.annotation.RequireWorkspaceRole;
 import com.optistock.backend.service.StaffStocktakeService;
 import com.optistock.backend.util.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +38,12 @@ public class StaffStocktakeController {
 
     @Autowired
     private JwtUtils jwtUtils;
-
+    
     // ──────────────────────────────────────────
     // GET /pending — Danh sách phiếu kiểm kê chờ
     // ──────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể xem danh sách phiếu kiểm kê")
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingTickets(
             @RequestHeader(value = "X-Workspace-Id", required = false) String tenantId,
@@ -59,6 +63,8 @@ public class StaffStocktakeController {
     // ──────────────────────────────────────────
     // GET /{ticketId} — Chi tiết phiếu kiểm kê
     // ──────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể xem chi tiết phiếu kiểm kê")
     @GetMapping("/{ticketId}")
     public ResponseEntity<?> getTicket(
             @PathVariable String ticketId,
@@ -79,6 +85,8 @@ public class StaffStocktakeController {
     // ──────────────────────────────────────────
     // PUT /{ticketId}/start — Bắt đầu kiểm kê
     // ──────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể bắt đầu kiểm kê")
     @PutMapping("/{ticketId}/start")
     public ResponseEntity<?> startTicket(
             @PathVariable String ticketId,
@@ -101,6 +109,8 @@ public class StaffStocktakeController {
     // PUT /{ticketId}/count — Nhập số lượng thực tế
     // Body: { "productCode": "SP-001", "actualCount": 15 }
     // ──────────────────────────────────────────
+      @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể nhập số lượng kiểm kê")
     @PutMapping("/{ticketId}/count")
     public ResponseEntity<?> updateCount(
             @PathVariable String ticketId,
@@ -130,6 +140,8 @@ public class StaffStocktakeController {
     // ──────────────────────────────────────────
     // PUT /{ticketId}/submit — Gửi báo cáo kiểm kê
     // ──────────────────────────────────────────
+    @RequireWorkspaceRole(value = { WorkspaceRole.STAFF, WorkspaceRole.MANAGER,
+            WorkspaceRole.OWNER }, message = "Chỉ Nhân viên kho, Quản lý hoặc Chủ kho mới có thể gửi báo cáo kiểm kê")
     @PutMapping("/{ticketId}/submit")
     public ResponseEntity<?> submitTicket(
             @PathVariable String ticketId,

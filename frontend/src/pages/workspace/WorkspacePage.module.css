@@ -98,7 +98,8 @@
 /* ================ STAT GRID ================ */
 .statGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    /* Dùng CSS Grid của bạn bạn để chia lưới đều đặn */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 20px;
     margin-bottom: 28px;
 }
@@ -119,6 +120,11 @@
     box-shadow: 0 8px 24px -4px rgba(249, 115, 22, 0.08);
 }
 
+/* Thẻ mở rộng dành riêng cho các con số dài như Doanh thu (Logic của bạn) */
+.statCardWide {
+    grid-column: span 2; /* Trong Grid, ta cho thẻ này chiếm trọn 2 cột để có chỗ chứa chữ */
+}
+
 .statIcon {
     width: 44px;
     height: 44px;
@@ -130,25 +136,10 @@
     font-size: 20px;
 }
 
-.statIcon.orange {
-    background: #FFF7ED;
-    color: #F97316;
-}
-
-.statIcon.blue {
-    background: #EFF6FF;
-    color: #3B82F6;
-}
-
-.statIcon.green {
-    background: #F0FDF4;
-    color: #22C55E;
-}
-
-.statIcon.purple {
-    background: #FAF5FF;
-    color: #A855F7;
-}
+.statIcon.orange { background: #FFF7ED; color: #F97316; }
+.statIcon.blue { background: #EFF6FF; color: #3B82F6; }
+.statIcon.green { background: #F0FDF4; color: #22C55E; }
+.statIcon.purple { background: #FAF5FF; color: #A855F7; }
 
 .statInfo {
     display: flex;
@@ -187,7 +178,8 @@
     }
 
     .statGrid {
-        grid-template-columns: 1fr 1fr;
+        /* Bắt buộc chia 2 cột trên tablet theo logic của bạn bạn */
+        grid-template-columns: 1fr 1fr; 
         gap: 12px;
     }
 
@@ -198,10 +190,21 @@
     .statValue {
         font-size: 20px;
     }
+    
+    /* Trên màn hình tablet 2 cột, thẻ wide sẽ chiếm full chiều ngang (2 cột) */
+    .statCardWide {
+        grid-column: span 2; 
+    }
 }
 
 @media (max-width: 480px) {
     .statGrid {
-        grid-template-columns: 1fr;
+        /* Chuyển về 1 cột trên mobile theo logic của bạn bạn */
+        grid-template-columns: 1fr; 
+    }
+
+    /* Trên điện thoại nhỏ, trả thẻ rộng về lại 1 cột cho vừa màn hình (Logic của bạn) */
+    .statCardWide {
+        grid-column: span 1; 
     }
 }
