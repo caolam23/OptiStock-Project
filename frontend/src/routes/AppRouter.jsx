@@ -21,18 +21,18 @@ import WorkspaceLayout from '../layouts/WorkspaceLayout';
 import WorkspaceRoleRoute from '../components/WorkspaceRoleRoute';
 
 // ── Workspace Pages ────────────────────────────────────
-import Overview from '../pages/workspace/Overview';
+import OverviewDashboard from '../pages/workspace/Dashboard/Dashboard';
 import Products from '../pages/workspace/Products';
 import Locations from '../pages/workspace/Locations';
 import Inventory from '../pages/workspace/Inventory';
-import Stocktake from '../pages/workspace/Stocktake';
+import Stocktake from '../pages/workspace/Stocktake/Stocktake';
 import Finance from '../pages/workspace/Finance';
 import Reports from '../pages/workspace/Reports';
 import Orders from '../pages/workspace/Orders';
 import Customers from '../pages/workspace/Customers';
 import StaffTasks from '../pages/workspace/StaffTasks';
 import ProcessVoucher from '../pages/workspace/ProcessVoucher';
-import StocktakeDetail from '../pages/workspace/StocktakeDetail';
+import StocktakeDetail from '../pages/workspace/Stocktake/StocktakeDetail';
 import Personnel from '../pages/workspace/Personnel';
 import AuditLog from '../pages/workspace/AuditLog';
 import Settings from '../pages/workspace/Settings';
@@ -86,7 +86,7 @@ const AppRouter = () => {
                     {/* Tổng quan — tất cả role trừ STAFF */}
                     <Route path="overview" element={
                         <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'ACCOUNTANT', 'SALE']}>
-                            <Overview />
+                            <OverviewDashboard />
                         </WorkspaceRoleRoute>
                     } />
 

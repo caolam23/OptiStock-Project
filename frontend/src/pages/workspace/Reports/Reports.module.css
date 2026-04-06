@@ -1,0 +1,113 @@
+/* Reports.module.css - Main component styling */
+
+.container {
+  width: 100%;
+  padding: 0;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.tabsCard {
+  margin: 0 32px 24px 32px;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tabs :global(.ant-tabs) {
+  width: 100%;
+}
+
+.tabs :global(.ant-tabs-nav) {
+  background: #fafafa;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tabs :global(.ant-tabs-tab) {
+  font-weight: 500;
+  color: #595959;
+}
+
+.tabs :global(.ant-tabs-tab-active .ant-tabs-tab-btn) {
+  color: #f97316 !important;
+  font-weight: 600;
+}
+
+.footer {
+  padding: 24px 32px;
+  background: #e6f7ff;
+  border-radius: 8px;
+  margin: 0 32px 24px 32px;
+  border-left: 4px solid #1890ff;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 14px;
+  color: #0c44a8;
+  line-height: 1.6;
+}
+
+.highlight {
+  font-weight: 600;
+  color: #f97316;
+}
+
+/* ================ REPORTS GRID ================ */
+.reportsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+.reportCard {
+  width: 100%;
+  min-height: auto;
+}
+
+/* ================ RESPONSIVE ================ */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .tabsCard,
+  .footer {
+    margin: 0 16px 24px 16px;
+  }
+
+  .reportsGrid {
+    gap: 16px;
+  }
+}

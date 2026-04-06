@@ -318,53 +318,53 @@ public class StaffDataSeeder implements CommandLineRunner {
 
                 StocktakeTicket kk003 = StocktakeTicket.builder()
                                 .tenantId(tenantId).ticketCode("KK-003")
-                                .title("Kiểm kê khu A").locationCode("Kệ A - Tầng 1")
+                                .title("Kiểm kê khu A").locationId("Shelf A-01").locationName("Kệ A - Tầng 1")
                                 .items(Arrays.asList(
                                                 StocktakeItem.builder().productCode("SP-001")
                                                                 .productName("Áo Thun Cotton Basic - Trắng / L")
-                                                                .locationCode("A-01-01").systemQuantity(20).build(),
+                                                                .expectedQty(20).build(),
                                                 StocktakeItem.builder().productCode("SP-002")
                                                                 .productName("Quần Jeans Nam Slim Fit - Xanh / 32")
-                                                                .locationCode("A-01-02").systemQuantity(18).build(),
+                                                                .expectedQty(18).build(),
                                                 StocktakeItem.builder().productCode("SP-003")
                                                                 .productName("Giày Sneaker Sport - Đen / 42")
-                                                                .locationCode("A-01-03").systemQuantity(12).build(),
+                                                                .expectedQty(12).build(),
                                                 StocktakeItem.builder().productCode("SP-004")
                                                                 .productName("Balo Laptop Chống Nước 15.6 inch")
-                                                                .locationCode("A-01-04").systemQuantity(8).build(),
+                                                                .expectedQty(8).build(),
                                                 StocktakeItem.builder().productCode("SP-005")
                                                                 .productName("Mũ Lưỡi Trai Unisex - Be")
-                                                                .locationCode("A-01-05").systemQuantity(45).build(),
+                                                                .expectedQty(45).build(),
                                                 StocktakeItem.builder().productCode("SP-006")
                                                                 .productName("Tất Cổ Ngắn Cotton (Combo 5 đôi)")
-                                                                .locationCode("A-01-06").systemQuantity(60).build(),
+                                                                .expectedQty(60).build(),
                                                 StocktakeItem.builder().productCode("SP-007")
                                                                 .productName("Áo Khoác Gió 2 Lớp - Đen / XL")
-                                                                .locationCode("A-01-07").systemQuantity(10).build(),
+                                                                .expectedQty(10).build(),
                                                 StocktakeItem.builder().productCode("SP-008")
                                                                 .productName("Găng Tay Len Mùa Đông")
-                                                                .locationCode("A-01-08").systemQuantity(25).build()))
+                                                                .expectedQty(25).build()))
                                 .createdAt(LocalDateTime.now().minusDays(1)).build();
 
                 StocktakeTicket kk004 = StocktakeTicket.builder()
                                 .tenantId(tenantId).ticketCode("KK-004")
-                                .title("Kiểm kê khu B").locationCode("Kệ B - Tầng 1")
+                                .title("Kiểm kê khu B").locationId("Shelf B-04").locationName("Kệ B - Tầng 4")
                                 .items(Arrays.asList(
                                                 StocktakeItem.builder().productCode("89300012")
                                                                 .productName("iPhone 13 Pro Max")
-                                                                .locationCode("B-01-01").systemQuantity(50).build(),
+                                                                .expectedQty(50).build(),
                                                 StocktakeItem.builder().productCode("89300099")
                                                                 .productName("Mac Mini M2")
-                                                                .locationCode("B-01-02").systemQuantity(15).build(),
+                                                                .expectedQty(15).build(),
                                                 StocktakeItem.builder().productCode("89300155")
                                                                 .productName("Sony WH-1000XM5")
-                                                                .locationCode("B-01-03").systemQuantity(30).build(),
+                                                                .expectedQty(30).build(),
                                                 StocktakeItem.builder().productCode("89300045")
                                                                 .productName("Samsung Galaxy S22")
-                                                                .locationCode("B-01-04").systemQuantity(40).build(),
+                                                                .expectedQty(40).build(),
                                                 StocktakeItem.builder().productCode("89300221")
                                                                 .productName("Logitech MX Master 3")
-                                                                .locationCode("B-01-05").systemQuantity(60).build()))
+                                                                .expectedQty(60).build()))
                                 .createdAt(LocalDateTime.now()).build();
 
                 stocktakeTicketRepository.saveAll(Arrays.asList(kk003, kk004));

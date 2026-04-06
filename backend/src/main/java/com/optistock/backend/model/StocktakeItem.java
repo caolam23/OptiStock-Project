@@ -2,14 +2,24 @@ package com.optistock.backend.model;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * StocktakeItem: Một dòng sản phẩm trong phiếu kiểm kê.
  * Embedded document — KHÔNG có collection riêng.
  *
- * Staff chỉ thấy: productCode, productName, locationCode, actualQuantity (ô
- * nhập liệu).
- * systemQuantity (tồn kho trên sổ sách) được ẨN khỏi Staff để tránh gian lận.
- * Khi Staff submit → hệ thống tự tính hasDiscrepancy.
+ * Hỗ trợ 2 ngành hàng:
+ * 
+ * ELECTRONICS:
+ *   - expectedImeis: Danh sách IMEI từ hệ thống
+ *   - actualImeis: Danh sách IMEI nhập viên đếm được
+ *   - So sánh: missing = expectedImeis - actualImeis
+ *
+ * GROCERY:
+ *   - batchCode: Mã lô hàng
+ *   - expiryDate: Hạn sử dụng của lô
+ *   - expectedQty/actualQty: Số lượng từng lô
  */
 @Data
 @NoArgsConstructor
@@ -17,36 +27,56 @@ import lombok.*;
 @Builder
 public class StocktakeItem {
 
-    private String productId; // Ref → Product._id
-    private String productName; // "Áo Thun Cotton Basic - Trắng / L"
-    private String productCode; // SKU: "SK-001"
-    private String locationCode; // Vị trí: "A-01-01"
+    // ========== COMMON FIELDS ==========
+    private String productId;                    // Ref → Product._id
+    private String productCode;                  // SKU: "SK-001"
+    private String productName;                  // "Áo Thun Cotton"
+    private String category;                     // Danh mục sản phẩm
 
-    @Builder.Default
-    private Integer systemQuantity = 0; // Tồn kho trên hệ thống (ẨN với Staff)
-
-    private Integer actualQuantity; // Số lượng Staff đếm thực tế (null = chưa đếm)
-
-    @Builder.Default
-    private boolean hasDiscrepancy = false; // true nếu actual != system (tính khi submit)
-
-    private Integer discrepancyAmount; // actual - system (+ là thừa, - là thiếu)
+    private Integer expectedQty;                 // Tồn kho từ hệ thống
+    private Integer actualQty;                   // Số lượng đếm được thực tế
 
     /**
-     * Tính chênh lệch sau khi Staff submit.
-     * Gọi bởi StaffStocktakeService.
+     * Chênh lệch = actualQty - expectedQty
+     * + Dương: Thừa hàng
+     * - Âm: Thiếu hàng
+     * 0: Khớp
+     */
+    private Integer discrepancy;
+
+    // ========== FOR ELECTRONICS (Quản lý IMEI/Serial) ==========
+    private List<String> expectedImeis;         // Danh sách IMEI từ hệ thống
+    private List<String> actualImeis;           // Danh sách IMEI đếm được
+
+    // ========== FOR GROCERY (Quản lý Lô/Batch) ==========
+    private String batchCode;                   // Mã lô sản phẩm
+    private LocalDateTime expiryDate;           // Hạn sử dụng lô
+
+    // ========== HELPERS ==========
+
+    /**
+     * Tính chênh lệch số lượng
      */
     public void calculateDiscrepancy() {
-        if (actualQuantity != null && systemQuantity != null) {
-            this.discrepancyAmount = this.actualQuantity - this.systemQuantity;
-            this.hasDiscrepancy = (this.discrepancyAmount != 0);
+        if (expectedQty != null && actualQty != null) {
+            this.discrepancy = this.actualQty - this.expectedQty;
         }
     }
 
     /**
-     * Kiểm tra Staff đã nhập số lượng chưa.
+     * Kiểm tra đã đếm chưa
      */
     public boolean isCounted() {
-        return actualQuantity != null;
+        return actualQty != null && actualQty > 0;
+    }
+
+    /**
+     * Kiểm tra có chênh lệch không
+     */
+    public boolean isHasDiscrepancy() {
+        if (expectedQty == null || actualQty == null) {
+            return false;
+        }
+        return !expectedQty.equals(actualQty);
     }
 }

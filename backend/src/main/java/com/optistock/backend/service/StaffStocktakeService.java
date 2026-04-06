@@ -100,7 +100,7 @@ public class StaffStocktakeService {
             throw new AuthException("Số lượng không được âm");
         }
 
-        item.setActualQuantity(actualCount);
+        item.setActualQty(actualCount);
         return toDTO(stocktakeTicketRepository.save(ticket));
     }
 
@@ -125,28 +125,25 @@ public class StaffStocktakeService {
         }
 
         // Validate tất cả items đã được nhập
-        if (!ticket.isAllCounted()) {
-            int counted = ticket.getCountedItems();
-            int total = ticket.getTotalItems();
+        if (ticket.getUnCountedItems() > 0) {
+            int total = ticket.getItems().size();
+            int uncounted = (int) ticket.getUnCountedItems();
             throw new AuthException(
-                    "Còn " + (total - counted) + "/" + total + " sản phẩm chưa nhập số lượng. Vui lòng kiểm tra lại.");
+                    "Còn " + uncounted + "/" + total + " sản phẩm chưa nhập số lượng. Vui lòng kiểm tra lại.");
         }
 
         // Hệ thống tự tính chênh lệch (ngầm, Staff không thấy)
         ticket.calculateAllDiscrepancies();
 
-        int discrepancyCount = ticket.getDiscrepancyCount();
-
         // Cập nhật trạng thái
         ticket.setStatus("SUBMITTED");
-        ticket.setSubmittedBy(staffUserId);
         ticket.setSubmittedAt(LocalDateTime.now());
 
         StocktakeTicket saved = stocktakeTicketRepository.save(ticket);
 
         // Log để Manager kiểm tra
         System.out.printf("📋 Phiếu kiểm kê %s đã gửi bởi %s | Chênh lệch: %d/%d items%n",
-                ticket.getTicketCode(), staffUserId, discrepancyCount, ticket.getTotalItems());
+                ticket.getTicketCode(), staffUserId, ticket.getDiscrepancyCount(), ticket.getItems().size());
 
         return toDTO(saved);
     }
@@ -162,8 +159,8 @@ public class StaffStocktakeService {
     }
 
     /**
-     * Convert StocktakeTicket → DTO, ẨN systemQuantity khỏi Staff.
-     * Staff chỉ thấy: productCode, productName, locationCode, actualQuantity.
+     * Convert StocktakeTicket → DTO, ẨN expectedQty khỏi Staff.
+     * Staff chỉ thấy: productCode, productName, locationName, actualQty.
      */
     private StocktakeTicketDTO toDTO(StocktakeTicket ticket) {
         List<StocktakeTicketDTO.StocktakeItemStaffView> itemViews = ticket.getItems().stream()
@@ -171,8 +168,7 @@ public class StaffStocktakeService {
                         .productId(item.getProductId())
                         .productName(item.getProductName())
                         .productCode(item.getProductCode())
-                        .locationCode(item.getLocationCode())
-                        .actualQuantity(item.getActualQuantity())
+                        .actualQty(item.getActualQty())
                         .isCounted(item.isCounted())
                         .build())
                 .collect(Collectors.toList());
@@ -182,10 +178,10 @@ public class StaffStocktakeService {
                 .ticketCode(ticket.getTicketCode())
                 .title(ticket.getTitle())
                 .status(ticket.getStatus())
-                .locationCode(ticket.getLocationCode())
+                .locationName(ticket.getLocationName())
                 .items(itemViews)
-                .totalItems(ticket.getTotalItems())
-                .countedItems(ticket.getCountedItems())
+                .totalItems(ticket.getItems().size())
+                .countedItems(ticket.getItems().size() - (int) ticket.getUnCountedItems())
                 .createdAt(ticket.getCreatedAt())
                 .startedAt(ticket.getStartedAt())
                 .submittedAt(ticket.getSubmittedAt())

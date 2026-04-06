@@ -1,0 +1,124 @@
+/* Stocktake.module.css */
+
+.container {
+  width: 100%;
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  background: #ffffff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.createBtn {
+  min-width: 160px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.tabs {
+  background: #ffffff;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  margin-bottom: 16px;
+}
+
+.tabs :global(.ant-tabs-nav) {
+  margin: 0;
+}
+
+.table {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.table :global(.ant-table) {
+  border-radius: 8px;
+}
+
+.code {
+  font-weight: 600;
+  color: #1890ff;
+  font-family: 'Courier New', monospace;
+}
+
+.status {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+}
+
+.progressFill {
+  height: 6px;
+  background: linear-gradient(90deg, #52c41a, #95de64);
+  border-radius: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.progressBar span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #262626;
+  min-width: 35px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+
+  .createBtn {
+    width: 100%;
+  }
+
+  .table :global(.ant-table) {
+    font-size: 12px;
+  }
+
+  .table :global(.ant-table-cell) {
+    padding: 8px 4px !important;
+  }
+}

@@ -69,7 +69,7 @@ const MENU_CONFIG = [
         label: 'Kiểm kê',
         icon: <AuditOutlined />,
         path: 'stocktake',
-        roles: ['OWNER', 'MANAGER'],
+        roles: ['OWNER', 'MANAGER', 'STAFF'],
     },
     {
     key: 'available-stock', // Key này phải khớp với route "available-stock" trong AppRouter.jsx

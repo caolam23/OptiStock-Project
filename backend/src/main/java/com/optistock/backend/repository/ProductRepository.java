@@ -140,6 +140,17 @@ public interface ProductRepository extends MongoRepository<Product, String> {
     // ========== NEW: INDUSTRY TYPE FILTERING METHODS ==========
 
     /**
+     * Lấy sản phẩm theo tenantId, industryType, isActive (List - không phân trang)
+     * Sử dụng bởi ReportService để lấy tất cả sản phẩm cho báo cáo
+     * 
+     * @param tenantId ID của tenant
+     * @param industryType Loại ngành hàng (ELECTRONICS, GROCERY)
+     * @param isActive Trạng thái active
+     * @return List<Product>
+     */
+    List<Product> findByTenantIdAndIndustryTypeAndIsActive(String tenantId, String industryType, boolean isActive);
+
+    /**
      * Lấy sản phẩm theo tenantId, industryType (giải pháp cho vấn đề lọc ngành hàng)
      * @param tenantId ID của tenant
      * @param industryType Loại ngành hàng (ELECTRONICS, GROCERY)
@@ -248,6 +259,26 @@ public interface ProductRepository extends MongoRepository<Product, String> {
      */
     @Query("{ 'tenantId': ?0, 'isActive': true, 'industryType': ?2, $or: [ { 'productName': { $regex: ?1, $options: 'i' } }, { 'productCode': { $regex: ?1, $options: 'i' } } ] }")
     Page<Product> searchByTenantIdAndKeywordAndIndustryTypeStrict(String tenantId, String keyword, String industryType, Pageable pageable);
+
+    // ========== DASHBOARD QUERIES (New) ==========
+
+    /**
+     * Đếm số sản phẩm có tồn kho > minValue (dùng cho tính SKU hoạt động)
+     * @param tenantId ID của tenant
+     * @param minStock Giá trị so sánh
+     * @param isActive Trạng thái sản phẩm
+     * @return Số sản phẩm khớp
+     */
+    long countByTenantIdAndCurrentStockGreaterThanAndIsActive(String tenantId, Integer minStock, boolean isActive);
+
+    /**
+     * Đếm số sản phẩm có tồn kho <= maxValue (dùng cho tính sản phẩm hết hàng)
+     * @param tenantId ID của tenant
+     * @param maxStock Giá trị so sánh
+     * @param isActive Trạng thái sản phẩm
+     * @return Số sản phẩm khớp
+     */
+    long countByTenantIdAndCurrentStockLessThanEqualAndIsActive(String tenantId, Integer maxStock, boolean isActive);
 
     /**
      * 🔥 Lấy sản phẩm theo kategori và industryType HOẶC không có industryType

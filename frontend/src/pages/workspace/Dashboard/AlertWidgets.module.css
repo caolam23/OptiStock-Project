@@ -1,0 +1,201 @@
+/* AlertWidgets.module.css */
+
+.alertsContainer {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.alertCard {
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.alertCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #40a9ff;
+}
+
+.alertCard :global(.ant-card-head) {
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  border-radius: 8px 8px 0 0;
+}
+
+.alertCard :global(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.iconWarning {
+  color: #ff4d4f;
+  margin-right: 8px;
+}
+
+.iconClock {
+  color: #faad14;
+  margin-right: 8px;
+}
+
+.alertCard :global(.ant-card-body) {
+  padding: 16px 12px;
+}
+
+.alertCount {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+}
+
+.alertCount strong {
+  color: #ff4d4f;
+  font-size: 16px;
+}
+
+.table :global(.ant-table-wrapper) {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.table :global(.ant-table) {
+  font-size: 13px;
+  min-width: 100%;
+}
+
+.table :global(.ant-table-thead > tr > th) {
+  background: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #e8e8e8;
+  padding: 12px 8px !important;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.table :global(.ant-table-tbody > tr > td) {
+  padding: 10px 8px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table :global(.ant-table-tbody > tr:hover > td) {
+  background: #f5f5f5;
+}
+
+.boldText {
+  font-weight: 600;
+  color: #262626;
+}
+
+.productName {
+  color: #595959;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.redText {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+.orangeText {
+  color: #faad14;
+  font-weight: 600;
+}
+
+.alertMessage {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.alertMessage p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.smallText {
+  font-size: 12px !important;
+  color: #999;
+}
+
+/** Responsive adjustments */
+@media (max-width: 1200px) {
+  .alertsContainer {
+    margin-bottom: 16px;
+  }
+
+  .table :global(.ant-table) {
+    font-size: 12px;
+  }
+
+  .table :global(.ant-table-thead > tr > th) {
+    padding: 10px 6px !important;
+    font-size: 11px;
+  }
+
+  .table :global(.ant-table-tbody > tr > td) {
+    padding: 8px 6px !important;
+  }
+}
+
+@media (max-width: 968px) {
+  .alertCard :global(.ant-card-head-title) {
+    font-size: 14px;
+  }
+
+  .alertCard :global(.ant-card-body) {
+    padding: 12px 8px;
+  }
+
+  .table :global(.ant-table) {
+    font-size: 11px;
+  }
+
+  .table :global(.ant-table-thead > tr > th) {
+    padding: 8px 4px !important;
+    font-size: 10px;
+  }
+
+  .table :global(.ant-table-tbody > tr > td) {
+    padding: 6px 4px !important;
+  }
+
+  .alertCount {
+    font-size: 12px;
+  }
+
+  .productName {
+    max-width: 100px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .alertCard :global(.ant-card-head-title) {
+    font-size: 13px;
+  }
+
+  .alertCard :global(.ant-card-body) {
+    padding: 10px 6px;
+  }
+
+  .table :global(.ant-table) {
+    font-size: 10px;
+  }
+
+  .alertCount {
+    font-size: 11px;
+  }
+
+  .productName {
+    max-width: 80px;
+  }
+}

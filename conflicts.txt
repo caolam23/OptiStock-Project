@@ -1,0 +1,5 @@
+﻿backend/src/main/java/com/optistock/backend/controller/ReportController.java
+backend/src/main/java/com/optistock/backend/service/ReportService.java
+frontend/package-lock.json
+frontend/package.json
+frontend/src/pages/workspace/Reports.jsx

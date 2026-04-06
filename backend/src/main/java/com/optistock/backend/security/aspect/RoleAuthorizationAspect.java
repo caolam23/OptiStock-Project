@@ -26,7 +26,7 @@ public class RoleAuthorizationAspect {
 
         // 2. Kiểm tra nếu chưa đăng nhập
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new AuthException("Vui lòng đăng nhập để truy cập chức năng này");
+            throw new AuthException("AUTH_ERROR", "Vui lòng đăng nhập để truy cập chức năng này");
         }
 
         // 3. Lấy danh sách Role của User hiện tại
@@ -50,7 +50,9 @@ public class RoleAuthorizationAspect {
                     .anyMatch(role -> userRoles.contains(role.getCode()));
 
             if (!hasRole) {
-                throw new AuthException("Bạn không có quyền truy cập chức năng này (" + requireRole.message() + ")");
+                // errorCode = ROLE_REQUIRED → GlobalExceptionHandler sẽ trả 403 thay vì 401
+                // (Tránh axios interceptor xóa token và đẩy user về /login)
+                throw new AuthException("ROLE_REQUIRED", requireRole.message());
             }
         }
 

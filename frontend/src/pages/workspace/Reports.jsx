@@ -1,25 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Tabs, Button, Space, message, Spin } from 'antd';
 import { DownloadOutlined, ReloadOutlined } from '@ant-design/icons';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import * as reportsApi from '../../api/reportsApi';
 import ReportsKPICards from './components/ReportsKPICards';
 import OverviewChart from './components/OverviewChart';
 import AbcAnalysisTable from './components/AbcAnalysisTable';
 import DeadStockTable from './components/DeadStockTable';
+import ReportInventoryValue from './Reports/ReportInventoryValue';
+import ReportAbcAnalysis from './Reports/ReportAbcAnalysis';
+import ReportIndustrySpecific from './Reports/ReportIndustrySpecific';
 import styles from './Reports.module.css';
+import reportsStyles from './Reports/Reports.module.css';
 
 /**
- * Reports.jsx - Trang Báo cáo & Phân tích dành cho Kế toán
+ * Reports.jsx - Trang Báo cáo & Phân tích dành cho Kế toán (Hợp nhất)
  *
- * 3 Tabs:
+ * Gồm các Tabs:
  * 1. Tổng quan - Biểu đồ xu hướng 6 tháng
  * 2. Phân tích ABC - Bảng phân loại sản phẩm
- * 3. Cảnh báo Dead Stock - Bảng hàng tồn > 90 ngày
+ * 3. Cảnh báo Dead Stock - Bảng hàng tồn
+ * 4. Báo cáo Chi Tiết (Custom Grid layout từ lam-thanh)
  */
+
+// Map industryCode (from workspace) to industryType (for API)
+const mapIndustryCodeToType = (code) => {
+    if (!code) return 'ELECTRONICS'; // Default
+
+    const upperCode = code.toUpperCase();
+    if (['ELECTRONICS', 'TECH', 'FASHION', 'APPLIANCES'].includes(upperCode)) {
+        return 'ELECTRONICS';
+    }
+    if (['FMCG', 'GROCERY', 'FNB', 'PHARMACY', 'F&B'].includes(upperCode)) {
+        return 'GROCERY';
+    }
+    return 'ELECTRONICS';
+};
+
 const Reports = () => {
+    const { workspaceId: paramWorkspaceId } = useParams();
     const { currentWorkspace } = useAuth();
-    const workspaceId = currentWorkspace?.id;
+
+    const workspaceId = paramWorkspaceId || currentWorkspace?.id;
+    const industryType = mapIndustryCodeToType(currentWorkspace?.industryCode);
 
     // ==================== States ====================
     const [overviewData, setOverviewData] = useState([]);
@@ -30,7 +54,6 @@ const Reports = () => {
     const [loadingOverview, setLoadingOverview] = useState(false);
     const [loadingABC, setLoadingABC] = useState(false);
     const [loadingDeadStock, setLoadingDeadStock] = useState(false);
-
     const [exporting, setExporting] = useState(false);
 
     // ==================== Effects ====================
@@ -52,12 +75,11 @@ const Reports = () => {
     const loadOverviewData = async () => {
         setLoadingOverview(true);
         try {
-            // Mock data - thay bằng API call thực tế nếu có
             const mockData = reportsApi.getMockOverviewChartData();
             setOverviewData(mockData);
         } catch (error) {
             console.error('Error loading overview data:', error);
-            message.error('Lỗi tải dữ liệu tờng quan');
+            message.error('Lỗi tải dữ liệu tổng quan');
         } finally {
             setLoadingOverview(false);
         }
@@ -116,11 +138,30 @@ const Reports = () => {
         }
     };
 
+    if (!workspaceId) {
+        return <div>Không tìm thấy workspace</div>;
+    }
+
+    // ==================== Custom Reports Grid ====================
+    const CustomReportsGrid = () => (
+        <div className={reportsStyles.reportsGrid}>
+            <div className={reportsStyles.reportCard}>
+                <ReportInventoryValue tenantId={workspaceId} industryType={industryType} />
+            </div>
+            <div className={reportsStyles.reportCard}>
+                <ReportAbcAnalysis tenantId={workspaceId} industryType={industryType} />
+            </div>
+            <div className={reportsStyles.reportCard}>
+                <ReportIndustrySpecific tenantId={workspaceId} industryType={industryType} />
+            </div>
+        </div>
+    );
+
     // ==================== UI Tab Items ====================
     const tabItems = [
         {
             key: '1',
-            label: '📊 Tổng Quan',
+            label: '📊 Tổng Quan (Sales)',
             children: (
                 <div className={styles.tabsContent}>
                     <OverviewChart data={overviewData} loading={loadingOverview} />
@@ -129,7 +170,7 @@ const Reports = () => {
         },
         {
             key: '2',
-            label: '📈 Phân Tích ABC',
+            label: '📈 Phân Tích ABC (Sales)',
             children: (
                 <div className={styles.tabsContent}>
                     <div style={{ marginBottom: '16px' }}>
@@ -148,7 +189,7 @@ const Reports = () => {
         },
         {
             key: '3',
-            label: '⚠️ Dead Stock',
+            label: '⚠️ Dead Stock (Bán Hàng)',
             children: (
                 <div className={styles.tabsContent}>
                     <div style={{ marginBottom: '16px' }}>
@@ -165,9 +206,17 @@ const Reports = () => {
                 </div>
             ),
         },
+        {
+            key: '4',
+            label: '📋 Báo Cáo Chuyên Sâu (Ngành Hàng)',
+            children: (
+                <div className={styles.tabsContent}>
+                    <CustomReportsGrid />
+                </div>
+            ),
+        }
     ];
 
-    // ==================== Render ====================
     return (
         <div className={styles.reportsContainer}>
             {/* Header */}
