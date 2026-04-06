@@ -47,8 +47,10 @@ const WorkspaceCard = ({ workspace, onSelectWorkspace }) => {
         return <><SafetyCertificateOutlined /> Quản trị viên (Manager)</>;
       case 'STAFF':
         return <><UserOutlined /> Nhân viên Kho (Staff)</>;
-      default:
+      case 'SALE':
         return <><ShopOutlined /> Nhân viên Sale</>;
+      case 'ACCOUNTANT':
+        return <><ShopOutlined /> Nhân viên Kế toán</>;
     }
   };
 
