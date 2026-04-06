@@ -204,9 +204,15 @@ public class StaffVoucherService {
         }
 
         // ── Cập nhật tồn kho cho từng item ──────────────────────────
+        // ── Cập nhật tồn kho và Giá vốn cho từng item ────────────────
+        // Kế toán cần số liệu này cho báo cáo WAC và COGS (V.2)
         for (VoucherItem item : voucher.getItems()) {
-            updateProductStock(tenantId, item.getProductCode(), item.getQuantityActual(), voucher.getType());
+            
+            
+            
+            updateProductFinancials(tenantId, item.getProductCode(), item.getQuantityActual(), voucher.getType());
         }
+        // Ở thực tế, item trong phiếu nhập nên mang theo 'unitPrice' từ NCC
 
         // ── Cập nhật trạng thái phiếu ────────────────────────────────
         voucher.setStatus("COMPLETED");
@@ -217,7 +223,15 @@ public class StaffVoucherService {
         StockVoucher saved = stockVoucherRepository.save(voucher);
 
         System.out.printf("✅ Phiếu %s hoàn tất bởi %s lúc %s%n",
-                voucher.getVoucherCode(), staffUserId, voucher.getCompletedAt());
+        voucher.getVoucherCode(),
+                staffUserId,
+                voucher.getCompletedAt());
+        
+        // Ghi log chi tiết phục vụ Audit Log (I.3) cho Kế toán
+        System.out.printf("📋 AUDIT: Phiếu %s (%s) hoàn tất bởi %s. Trạng thái tài chính: Đã cập nhật giá vốn.%n",
+                voucher.getType(),
+                voucher.getVoucherCode(),
+                staffUserId);
 
         return toDTO(saved);
     }
@@ -228,10 +242,13 @@ public class StaffVoucherService {
 
     /**
      * Cập nhật Product.currentStock sau khi hoàn tất phiếu.
+     * Cập nhật Tồn kho và Giá vốn (WAC) sau khi hoàn tất phiếu.
      * INBOUND: +quantity (nhập vào kho)
      * OUTBOUND / TRANSFER: -quantity (lấy ra khỏi kho)
      */
-    private void updateProductStock(String tenantId, String productCode, int quantity, String voucherType) {
+    private void updateProductStock(String tenantId, String productCode, int quantity, String voucherType) {}
+
+    private void updateProductFinancials(String tenantId, String productCode, int quantity, String voucherType) {
         Optional<Product> productOpt = productRepository.findByTenantIdAndProductCode(tenantId, productCode);
         if (productOpt.isEmpty()) {
             System.err.println("⚠️ Không tìm thấy sản phẩm: " + productCode + " — bỏ qua cập nhật tồn kho");
@@ -240,11 +257,22 @@ public class StaffVoucherService {
 
         Product product = productOpt.get();
         int currentStock = product.getCurrentStock() != null ? product.getCurrentStock() : 0;
+        double currentCost = product.getCost() != null ? product.getCost() : 0.0;
 
         if ("INBOUND".equals(voucherType)) {
+            // Giả sử giá nhập mới lấy từ Product.cost hiện tại (hoặc từ VoucherItem.unitPrice nếu có)
+            // Công thức Bình quân gia quyền (Weighted Average Cost)
+            // New Cost = (Old Val + New Val) / (Old Qty + New Qty)
+            double newInboundPrice = product.getCost(); // Mock: thực tế lấy từ phiếu nhập
+            if (currentStock + quantity > 0) {
+                double newCost = ((currentStock * currentCost) + (quantity * newInboundPrice)) / (currentStock + quantity);
+                product.setCost(newCost);
+            }
             product.setCurrentStock(currentStock + quantity);
         } else {
             // OUTBOUND hoặc TRANSFER
+            // OUTBOUND: Không tính lại giá vốn, nhưng Kế toán sẽ dùng giá vốn hiện tại để tính COGS
+            // COGS = currentCost * quantity
             int newStock = currentStock - quantity;
             if (newStock < 0) {
                 throw new AuthException(

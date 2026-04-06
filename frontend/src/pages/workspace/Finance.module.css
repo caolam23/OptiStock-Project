@@ -1,0 +1,46 @@
+.financeContainer {
+    padding: 0;
+    width: 100%;
+}
+
+.kpiRow {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.kpiCard {
+    background-color: #fafafa;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.kpiCard:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.cogsChartContainer {
+    margin: 16px 0;
+    padding: 16px;
+    background-color: #fafafa;
+    border-radius: 8px;
+}
+
+.profitTableContainer {
+    margin-top: 16px;
+}
+
+.debtTableContainer {
+    margin-top: 16px;
+}
+
+.modalHeader {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.currencyFormat {
+    font-family: 'Courier New', monospace;
+    text-align: right;
+}
