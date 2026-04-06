@@ -6,3 +6,4 @@ echo "application.properties" >> .gitignoreapplication.properties
 *.md
 *.md
 *.md
+*.md
