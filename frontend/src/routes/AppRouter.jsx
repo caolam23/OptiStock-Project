@@ -40,6 +40,7 @@ import SalesOrderList from "../pages/workspace/SalesOrderList";
 import CreateSalesOrder from "../pages/workspace/CreateSalesOrder";
 import AvailableStock from "../pages/workspace/AvailableStock";
 import SaleDashboard from "../pages/workspace/SaleDashboard";
+import AccountantDashboard from "../pages/workspace/AccountantDashboard";
 
 /**
  * AppRouter: Cấu trúc routing toàn ứng dụng.
@@ -93,6 +94,13 @@ const AppRouter = () => {
                     <Route path="sale-dashboard" element={
                         <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'SALE']}>
                             <SaleDashboard />
+                        </WorkspaceRoleRoute>
+                    } />
+
+                    {/* Tổng quan Tài chính — OWNER, MANAGER, ACCOUNTANT */}
+                    <Route path="accountant-dashboard" element={
+                        <WorkspaceRoleRoute allowedRoles={['OWNER', 'MANAGER', 'ACCOUNTANT']}>
+                            <AccountantDashboard />
                         </WorkspaceRoleRoute>
                     } />
 
