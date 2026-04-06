@@ -4,3 +4,5 @@ echo "application.properties" >> .gitignoreapplication.properties
 **/application.properties
 *.md
 *.md
+*.md
+*.md
