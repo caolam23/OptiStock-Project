@@ -88,15 +88,22 @@ public class JwtUtils {
                     .parseClaimsJws(token).getBody();
 
             Object rolesObj = claims.get("roles");
+            Set<String> rolesSet = new HashSet<>();
 
-            // Sửa lỗi ở đây: Cast về Collection<String> thay vì Collection<?>
             if (rolesObj instanceof Collection) {
-                return new HashSet<>((Collection<String>) rolesObj);
+                for (Object item : (Collection<?>) rolesObj) {
+                    if (item != null) {
+                        rolesSet.add(item.toString());
+                    }
+                }
+            } else if (rolesObj instanceof String) {
+                rolesSet.add((String) rolesObj);
             }
 
-            return new HashSet<>();
+            return rolesSet;
         } catch (Exception e) {
             // Trả về Set rỗng nếu có lỗi parse token
+            System.err.println("Lỗi khi parse roles từ JWT: " + e.getMessage());
             return new HashSet<>();
         }
     }

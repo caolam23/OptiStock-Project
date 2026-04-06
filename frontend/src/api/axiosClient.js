@@ -41,8 +41,19 @@ axiosClient.interceptors.response.use(
     },
     function (error) {
         if (error.response && error.response.status === 401) {
-            localStorage.removeItem('token');
-            window.location.href = '/login';
+            const requestUrl = error.config?.url || '';
+            const isAuthEndpoint = requestUrl.includes('/api/auth/');
+            const isAlreadyOnLogin = window.location.pathname === '/login';
+
+            // Chỉ redirect về /login nếu:
+            // 1. Chưa đang ở trang /login (tránh vòng lặp)
+            // 2. Không phải request từ endpoint auth (tránh xóa token khi login sai mật khẩu)
+            if (!isAlreadyOnLogin && !isAuthEndpoint) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('currentWorkspace');
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

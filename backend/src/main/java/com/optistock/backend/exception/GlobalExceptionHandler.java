@@ -17,6 +17,14 @@ public class GlobalExceptionHandler {
         response.put("success", false);
         response.put("errorCode", ex.getErrorCode());
         response.put("message", ex.getMessage());
+
+        // Lỗi phân quyền (không có role) → trả về 403 FORBIDDEN
+        // Không dùng 401 vì axios interceptor sẽ xóa token và đẩy người dùng về /login
+        String errorCode = ex.getErrorCode();
+        if (errorCode != null && (errorCode.equals("FORBIDDEN") || errorCode.equals("ROLE_REQUIRED"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
