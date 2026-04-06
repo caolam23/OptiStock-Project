@@ -229,7 +229,11 @@ public class AuthController {
         response.setPhoneNumber(user.getPhoneNumber());
         response.setAvatar(user.getAvatar());
         // System roles từ User: ["SUPER_ADMIN"] hoặc [] (rỗng cho user thường)
-        response.setRoles(new java.util.ArrayList<>(user.getRoles()));
+        if (user.getRoles() != null) {
+            response.setRoles(new java.util.ArrayList<>(user.getRoles()));
+        } else {
+            response.setRoles(new java.util.ArrayList<>());
+        }
         // tenantId không còn set ở đây — frontend fetch /my-workspaces để lấy danh sách
         // kho
         response.setActive(user.isActive());
