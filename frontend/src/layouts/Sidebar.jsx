@@ -60,7 +60,7 @@ const MENU_CONFIG = [
         label: 'Kiểm kê',
         icon: <AuditOutlined />,
         path: 'stocktake',
-        roles: ['OWNER', 'MANAGER'],
+        roles: ['OWNER', 'MANAGER', 'STAFF'],
     },
     {
         type: 'divider',

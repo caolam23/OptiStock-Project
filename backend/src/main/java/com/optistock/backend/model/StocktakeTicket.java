@@ -12,21 +12,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * StocktakeTicket: Phiếu yêu cầu kiểm kê.
- *
- * Luồng:
- * 1. Manager tạo yêu cầu kiểm kê cho 1 vị trí cụ thể (PENDING)
- * 2. Staff nhận phiếu, đến vị trí kệ, đếm hàng bằng mắt
- * 3. Staff nhập số lượng thực tế → bấm "Gửi báo cáo" (SUBMITTED)
- * 4. Hệ thống tự đối chiếu, ghi nhận chênh lệch
- * 5. Manager xem kết quả → APPROVED hoặc REJECTED
- *
- * Lưu ý: Staff KHÔNG thấy systemQuantity để đảm bảo tính khách quan.
- *
+ * StocktakeTicket: Phiếu kiểm kê kho
+ * 
+ * Hỗ trợ 2 ngành hàng:
+ * - ELECTRONICS: Quản lý IMEI (Serial)
+ * - GROCERY: Quản lý Lô (Batch) + Hạn sử dụng (Expiry)
+ * 
+ * Lifecycle:
+ * PENDING (Chờ xử lý) 
+ *   → COUNTING (Đang kiểm kê - nhân viên ghi số đếm)
+ *   → REVIEWING (Chờ duyệt - manager xác nhận)
+ *   → COMPLETED (Đã hoàn tất)
+ * hoặc CANCELLED (Hủy)
+ * 
  * Collection: stocktake_tickets
  */
 @Document(collection = "stocktake_tickets")
-@CompoundIndex(name = "tenant_status_idx", def = "{'tenantId': 1, 'status': 1}")
+@CompoundIndex(name = "tenant_industry_idx", def = "{'tenantId': 1, 'industryType': 1, 'status': 1}")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,66 +38,86 @@ public class StocktakeTicket {
     @Id
     private String id;
 
-    private String tenantId; // Workspace ID
+    private String tenantId;                     // Multi-tenant isolation
 
-    private String ticketCode; // Mã phiếu: "KK-003"
-
-    private String title; // "Kiểm kê khu A", "Kiểm kê Kệ A - Tầng 1"
-
-    /**
-     * Trạng thái:
-     * - PENDING: Chờ Staff nhận
-     * - IN_PROGRESS: Staff đang đếm
-     * - SUBMITTED: Staff đã gửi báo cáo
-     * - APPROVED: Manager đã duyệt
-     * - REJECTED: Manager từ chối (yêu cầu đếm lại)
-     */
-    @Builder.Default
-    private String status = "PENDING";
-
-    private String locationCode; // Vị trí cần kiểm kê: "Kệ A - Tầng 1"
+    private String ticketCode;                   // Mã phiếu duy nhất (VD: ST-20240401-001)
+    private String title;                        // Tiêu đề phiếu (VD: "Kiểm kê kho A4")
 
     @Builder.Default
-    private List<StocktakeItem> items = new ArrayList<>(); // Danh sách SP cần đếm
+    private String status = "PENDING";           // PENDING, COUNTING, REVIEWING, COMPLETED, CANCELLED
 
-    private String assignedTo; // userId Staff được giao
-    private String submittedBy; // userId Staff gửi báo cáo
-    private String createdBy; // userId Manager tạo yêu cầu
-    private String approvedBy; // userId Manager duyệt
+    private String industryType;                 // ELECTRONICS hoặc GROCERY (Bắt buộc)
+    private String locationId;                   // ID khu vực kiểm (VD: "Shelf A-01")
+    private String locationName;                 // Tên khu vực (Denormalized)
 
+    private String assignedTo;                   // ID nhân viên phụ trách đếm hàng
+    private String assignedToName;               // Tên nhân viên (Denormalized)
+
+    @Builder.Default
+    private List<StocktakeItem> items = new ArrayList<>();
+
+    // ========== TIMESTAMPS ==========
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    private LocalDateTime startedAt; // Khi Staff bắt đầu đếm
-    private LocalDateTime submittedAt; // Khi Staff gửi báo cáo
-    private LocalDateTime approvedAt; // Khi Manager duyệt
+    
+    private LocalDateTime startedAt;             // Lúc bắt đầu đếm
+    private LocalDateTime completedAt;           // Lúc hoàn thành đếm
+    private LocalDateTime submittedAt;           // Lúc gửi duyệt
 
-    // ============ HELPER METHODS ============
+    // ========== HELPERS ==========
 
     /**
-     * Đếm tổng sản phẩm cần kiểm kê.
+     * Tính tổng số lượng tồn từ hệ thống
      */
-    public int getTotalItems() {
-        return items != null ? items.size() : 0;
+    public Integer getTotalExpectedQty() {
+        return items.stream()
+            .mapToInt(item -> item.getExpectedQty() != null ? item.getExpectedQty() : 0)
+            .sum();
     }
 
     /**
-     * Đếm sản phẩm Staff đã nhập số lượng.
+     * Tính tổng số lượng đếm được thực tế
      */
-    public int getCountedItems() {
-        if (items == null)
-            return 0;
-        return (int) items.stream().filter(StocktakeItem::isCounted).count();
+    public Integer getTotalActualQty() {
+        return items.stream()
+            .mapToInt(item -> item.getActualQty() != null ? item.getActualQty() : 0)
+            .sum();
     }
 
     /**
-     * Kiểm tra Staff đã nhập hết chưa.
+     * Tính chênh lệch tổng = actual - expected
      */
-    public boolean isAllCounted() {
-        if (items == null || items.isEmpty())
-            return false;
-        return items.stream().allMatch(StocktakeItem::isCounted);
+    public Integer getTotalDifference() {
+        return getTotalActualQty() - getTotalExpectedQty();
+    }
+
+    /**
+     * Đếm số item chưa được đếm
+     */
+    public long getUnCountedItems() {
+        return items.stream()
+            .filter(item -> item.getActualQty() == null || item.getActualQty() == 0)
+            .count();
+    }
+
+    /**
+     * % hoàn thành đếm hàng
+     */
+    public Double getProgressPercentage() {
+        if (items.isEmpty()) return 0.0;
+        long counted = items.stream()
+            .filter(item -> item.getActualQty() != null && item.getActualQty() > 0)
+            .count();
+        return (counted * 100.0) / items.size();
+    }
+
+    /**
+     * Kiểm tra xem phiếu có cho phép edit không
+     */
+    public boolean isEditable() {
+        return "PENDING".equals(status) || "COUNTING".equals(status);
     }
 
     /**

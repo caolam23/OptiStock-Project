@@ -40,7 +40,7 @@
   --gradient-text: linear-gradient(to right, #EA580C, #F59E0B);
   
   /* Clean Surfaces */
-  --bg-body: #F8FAFC;
+  --bg-body: #FFFFFF;
   --surface: #FFFFFF;
   --text-main: #0F172A;
   --text-muted: #64748B;
@@ -87,7 +87,7 @@
   
   /* Đảm bảo nền phủ kín chiều cao màn hình */
   min-height: 100vh;
-  background-color: var(--bg-body);
+  background-color: #FFFFFF;
 }
 
 /* ================= WORKSPACE GRID ================= */
